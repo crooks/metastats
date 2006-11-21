@@ -85,19 +85,19 @@ def housekeeping(age):
     curs.execute("""DELETE FROM pingers WHERE ping_name NOT IN (
                     SELECT ping_name FROM mlist2)""")
 
-    # Look through the geneology table for records where last_fail is
+    # Look through the genealogy table for records where last_fail is
     # more than 'age' old.  If it is, consider that remailer dead by
     # setting last_seen to last_fail.
-    curs.execute("""UPDATE geneology SET
+    curs.execute("""UPDATE genealogy SET
                     last_seen=last_fail WHERE
                     last_seen IS NULL AND
                     last_fail < cast(%s AS timestamp)""", (age,))
     conn.commit()
 
-# This is a passive routine that counts duplicate entries in geneology.
+# This is a passive routine that counts duplicate entries in genealogy.
 # Duplicates are quite feasible but bad code could make them run wild.
 def gene_dup_count():
-    curs.execute("""SELECT rem_name,rem_addy,count(*) AS Num FROM geneology
+    curs.execute("""SELECT rem_name,rem_addy,count(*) AS Num FROM genealogy
                     GROUP BY rem_name,rem_addy having ( count(*) > 10)""")
     return curs.fetchall()
 
@@ -336,21 +336,21 @@ def remailer_getop(name, addy):
 # remailer show an up_hist nothing but 0's and ?'s.  Most pingers delist a
 # remailer before the 12 day requirement this would need.
 def gene_age_check():
-    curs.execute("""UPDATE geneology SET
+    curs.execute("""UPDATE genealogy SET
                     last_seen = first_seen WHERE
                     first_seen > last_seen AND
                     last_seen IS NOT NULL""")
     conn.commit()
 
 # Called from failed.py, this routine puts a last_fail timestamp in the
-# geneology table providing there isn't already one set and last_seen
+# genealogy table providing there isn't already one set and last_seen
 # is also unset.  The mark_recovered routine removes the last_fail
 # timestamp when a remailer recovers.
 def mark_failed(name, addy, time):
     details = { 'rem_name' : name,
                 'rem_addy' : addy,
                 'fail_time' : time }
-    curs.execute("""UPDATE geneology SET
+    curs.execute("""UPDATE genealogy SET
                     last_fail = cast(%(fail_time)s AS timestamp) WHERE
                     last_seen IS NULL AND
                     last_fail IS NULL AND
@@ -358,12 +358,12 @@ def mark_failed(name, addy, time):
                     rem_addy = %(rem_addy)s""", details)
     conn.commit()
 
-# Remove a fail_time timestamp from the geneology table providing
+# Remove a fail_time timestamp from the genealogy table providing
 # last_seen is not set.  This is called from failed.py.
 def mark_recovered(name, addy):
     details = { 'rem_name' : name,
                 'rem_addy' : addy }
-    curs.execute("""UPDATE geneology SET
+    curs.execute("""UPDATE genealogy SET
                     last_fail = NULL WHERE
                     last_seen IS NULL and
                     rem_name = %(rem_name)s AND
