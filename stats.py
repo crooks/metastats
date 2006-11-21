@@ -52,7 +52,7 @@ config = {
     "active_future" : 2,
 
     # This is the filename used to create a .txt and .html report file
-    # for the remailer geneology section.
+    # for the remailer genealogy section.
     "gene_report_name" : 'genealogy',
 
     "gene_age_days" : 20,
@@ -274,8 +274,8 @@ def gen_remailer_vitals(name, addy, age, future):
     return vitals
 
 # Check to see if there are any remailer names in the mlist2 table that don't
-# exist in the geneology table.  If there are any, then write them along with
-# the current time.  Entries in geneology table are excluded if the already
+# exist in the genealogy table.  If there are any, then write them along with
+# the current time.  Entries in genealogy table are excluded if the already
 # have a last_seen address.  This accounts for remailers returning with the
 # same name and address.
 def gene_find_new(age):
@@ -284,7 +284,7 @@ def gene_find_new(age):
                     rem_addy IS NOT NULL AND
                     timestamp > cast(%s AS timestamp) AND
                     up_hist !~ '^[0?]{12}$' EXCEPT
-                    (SELECT rem_name,rem_addy FROM geneology WHERE
+                    (SELECT rem_name,rem_addy FROM genealogy WHERE
                     last_seen IS NULL)""", (age,))
     new_remailers = curs.fetchall()
     for new_remailer in new_remailers:
@@ -296,7 +296,7 @@ def gene_find_new(age):
 # This function is called from gene_find_new for each newly discovered
 # remailer.
 def gene_insert_new(remailer):
-    curs.execute("""INSERT INTO geneology 
+    curs.execute("""INSERT INTO genealogy 
                         (rem_name, rem_addy, first_seen)
                     VALUES (
                         %(new_remailer_name)s,
@@ -304,12 +304,12 @@ def gene_insert_new(remailer):
                         %(new_remailer_time)s)""", remailer)
     conn.commit()
 
-# Check to see if any remailers exist in geneology but not in mlist2.  If any
+# Check to see if any remailers exist in genealogy but not in mlist2.  If any
 # are found, then add a last_seen date to that entry.  Once an entry has a
 # last_seen address, it should never be updated again.  Note, date is 672 hours
 # ago as remailers in mlist2 are only dead after not being seen for 28 days.
 def gene_find_dead(conf):
-    curs.execute("""SELECT rem_name,rem_addy FROM geneology WHERE
+    curs.execute("""SELECT rem_name,rem_addy FROM genealogy WHERE
                     last_seen IS NULL AND
                     rem_addy IS NOT NULL EXCEPT
                     (SELECT rem_name,rem_addy FROM mlist2 WHERE
@@ -323,9 +323,9 @@ def gene_find_dead(conf):
         gene_update_dead(dead_data)
 
 # This function is called from gene_find_dead for each dead remailer.  It writes the
-# last_seen date to the geneology database.
+# last_seen date to the genealogy database.
 def gene_update_dead(remailer):
-    curs.execute("""UPDATE geneology SET 
+    curs.execute("""UPDATE genealogy SET 
                         last_seen = %(dead_remailer_time)s
                     WHERE
                         rem_name = %(dead_remailer_name)s AND
@@ -335,43 +335,43 @@ def gene_update_dead(remailer):
 def gene_dup_check(dups):
     for dup in dups:
         name, addy, count = dup
-        logger.warn("%d geneology entries for %s %s", count, name, addy)
+        logger.warn("%d genealogy entries for %s %s", count, name, addy)
 
 def gene_write_text(conf):
     filename = '%(basedir)s/www/%(gene_report_name)s.txt' % conf
     genefile = open(filename,'w')
     line = "Remailer Geneology as of %s (UTC)\n\n" % utcnow()
     genefile.write(line)
-    curs.execute("""SELECT * FROM geneology WHERE
+    curs.execute("""SELECT * FROM genealogy WHERE
                     rem_addy IS NOT NULL
                     ORDER BY last_seen DESC,rem_name ASC""")
-    geneologies = curs.fetchall()
+    genealogies = curs.fetchall()
 
     # Find the longest length of a remailer_addy.  We can use this to
     # format the width of the column in the resulting test file.
     max_length = 20
-    for geneology in geneologies:
-        length = len(geneology[1])
+    for genealogy in genealogies:
+        length = len(genealogy[1])
         if length > max_length:
             max_length = length
 
-    for geneology in geneologies:
-        rem_name = geneology[0].ljust(12)
-        rem_addy = geneology[1].ljust(max_length)
+    for genealogy in genealogies:
+        rem_name = genealogy[0].ljust(12)
+        rem_addy = genealogy[1].ljust(max_length)
         line = rem_name + rem_addy
-        if geneology[2]:
-            first_seen1 = geneology[2]
+        if genealogy[2]:
+            first_seen1 = genealogy[2]
             first_seen = first_seen1.strftime("%Y-%m-%d")
             line = line + "  " + first_seen
-        if geneology[3]:
-            last_seen1 = geneology[3]
+        if genealogy[3]:
+            last_seen1 = genealogy[3]
             last_seen = last_seen1.strftime("%Y-%m-%d")
             line = line + "  " + last_seen
         line = line + '\n'
         genefile.write(line)
     genefile.close()
 
-# This routine will generate a html formated geneology file.
+# This routine will generate a html formated genealogy file.
 def gene_write_html(conf, filename):
     logger.debug("Writing Geneology HTML file %s", filename)
     genefile = open(filename,'w')
@@ -393,20 +393,20 @@ def gene_write_html(conf, filename):
 
     curs.execute("""SELECT rem_name, rem_addy, first_seen,
                     last_seen, last_fail, comments FROM
-                    geneology ORDER BY last_seen DESC,rem_name ASC""")
-    geneologies = curs.fetchall()
+                    genealogy ORDER BY last_seen DESC,rem_name ASC""")
+    genealogies = curs.fetchall()
 
     rotate_color = 0
-    for geneology in geneologies:
+    for genealogy in genealogies:
 
         #Set up some friendly names for fields
-        if geneology[0]: conf["rem_name"] = geneology[0]
-        if geneology[1]: conf["rem_addy"] = geneology[1]
-        if geneology[1]: conf["rem_addy_noat"] = geneology[1].replace('@','.')
-        if geneology[2]: conf["first_seen"] = geneology[2].strftime("%Y-%m-%d")
-        if geneology[3]: conf["last_seen"] = geneology[3].strftime("%Y-%m-%d")
-        if geneology[4]: conf["last_fail"] = geneology[4].strftime("%Y-%m-%d")
-        if geneology[5]: conf["comments"] = geneology[5]
+        if genealogy[0]: conf["rem_name"] = genealogy[0]
+        if genealogy[1]: conf["rem_addy"] = genealogy[1]
+        if genealogy[1]: conf["rem_addy_noat"] = genealogy[1].replace('@','.')
+        if genealogy[2]: conf["first_seen"] = genealogy[2].strftime("%Y-%m-%d")
+        if genealogy[3]: conf["last_seen"] = genealogy[3].strftime("%Y-%m-%d")
+        if genealogy[4]: conf["last_fail"] = genealogy[4].strftime("%Y-%m-%d")
+        if genealogy[5]: conf["comments"] = genealogy[5]
         
         # Rotate background colours for rows
         if rotate_color:
