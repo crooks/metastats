@@ -1,7 +1,0 @@
-CREATE TABLE geneology (
-rem_name varchar(12),
-rem_addy varchar(64),
-first_seen timestamp,
-last_seen timestamp,
-last_fail timestamp,
-);
