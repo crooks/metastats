@@ -2,7 +2,7 @@
 #
 # vim: tabstop=4 expandtab shiftwidth=4 autoindent
 #
-# template.py -- This is a template for new Python programs
+# timefunc.py - Time and date functions for stats generation
 #
 # Copyright (C) 2005 Steve Crook <steve@mixmin.org>
 #
