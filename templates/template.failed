@@ -1,0 +1,6 @@
+CREATE TABLE failed (
+rem_name varchar(12),
+rem_addy varchar(64),
+fail_began timestamp,
+last_uptime smallint
+);

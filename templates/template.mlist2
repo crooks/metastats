@@ -1,0 +1,11 @@
+CREATE TABLE mlist2 (
+ping_name varchar(24),
+rem_name varchar(12),
+rem_addy varchar(50),
+lat_hist char(12),
+lat_time smallint,
+up_hist char(12),
+up_time smallint,
+options char(15),
+timestamp timestamp
+);

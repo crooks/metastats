@@ -1,0 +1,6 @@
+CREATE TABLE pingers (
+ping_name varchar(24) PRIMARY KEY,
+type2 text UNIQUE,
+mlist2 text UNIQUE,
+rlist2 text UNIQUE
+);

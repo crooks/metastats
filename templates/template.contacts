@@ -1,0 +1,6 @@
+CREATE TABLE contacts (
+rem_name varchar(12),
+rem_addy varchar(64),
+op_name varchar(32),
+op_addy varchar(64)
+);
