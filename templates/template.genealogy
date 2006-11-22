@@ -1,0 +1,8 @@
+CREATE TABLE genealogy (
+rem_name varchar(12),
+rem_addy varchar(64),
+first_seen timestamp,
+last_seen timestamp,
+comments text,
+last_fail timestamp
+);
