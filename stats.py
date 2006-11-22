@@ -16,6 +16,7 @@
 # or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
 # for more details.
 
+import config
 import datetime
 import psycopg2
 import socket
@@ -34,33 +35,6 @@ from timefunc import arpa_check
 
 DSN = 'dbname=metastats user=crooks'
 
-config = {
-    # Directory where this program resides
-    "basedir" : "/home/crooks/testing",
-
-    # Base URL for access to stats
-    "baseurl" : "http://stats.mixmin.org",
-
-    # Name of index file
-    "index_file" : "index.html",
-
-    # Number of hours old a timestamp can be and a pinger
-    # entry still considered active.
-    "active_age" : 8,
-
-    # How many hours ahead of UTC is considered valid.
-    "active_future" : 2,
-
-    # This is the filename used to create a .txt and .html report file
-    # for the remailer genealogy section.
-    "gene_report_name" : 'genealogy',
-
-    "gene_age_days" : 20,
-
-    # Socket timeout, used to prevent url retrieval from hanging.
-    # Value is the number of seconds to wait for a url to respond.
-    "timeout" : 30 }
-    
 # --- Configuration ends here -----
 
 def init_logging():
@@ -339,7 +313,7 @@ def gene_dup_check(dups):
         logger.warn("%d genealogy entries for %s %s", count, name, addy)
 
 def gene_write_text(conf):
-    filename = '%(basedir)s/www/%(gene_report_name)s.txt' % conf
+    filename = '%s/www/%s.txt' % (config.basedir, config.gene_report_name)
     genefile = open(filename,'w')
     line = "Remailer Geneology as of %s (UTC)\n\n" % utcnow()
     genefile.write(line)
@@ -419,7 +393,7 @@ def gene_write_html(conf, filename):
         if conf.has_key("last_seen"):
             genefile.write('<tr bgcolor="%(bgcolor)s"><th class="tableleft">%(rem_name)s</th>\n' % conf)
         else:
-            conf["geneurl"] = '%(baseurl)s/%(rem_name)s.%(rem_addy_noat)s.txt' % conf
+            conf["geneurl"] = '%s/%(rem_name)s.%(rem_addy_noat)s.txt' % (config.baseurl, conf)
             genefile.write('<tr bgcolor="%(bgcolor)s"><th class="tableleft"><a href="%(geneurl)s" title="%(rem_addy)s">%(rem_name)s</a></th>\n' % conf)
 
         # If the remailer address exists, write a table cell for it
@@ -507,7 +481,7 @@ def write_remailer_stats(vitals):
 def index_generate(html, filename):
     """Write an HTML index/summary file.  The bulk of this comes from a list
     created in index_header and index_remailer."""
-    index = open(index_file, 'w')
+    index = open(index_path, 'w')
     # Write standard html header section
     index.write('<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">\n')
     index.write('<html>\n<head>\n')
@@ -523,7 +497,6 @@ def index_generate(html, filename):
 
     index.write('</table>\n')
     index.write('<br>Last update: %s (UTC)<br>\n' % utcnow())
-    #urlname = '%(baseurl)s/%(gene_report_name)s.html' % conf
     index.write('<br><a href="genealogy.html">Remailer Genealogy</a>')
     index.write('<br><a href="failed.html">Failing Remailers</a>')
     index.write('<br><a href="blocks.html">Newsgroups Blacklist<a>')
@@ -584,17 +557,15 @@ logger.info("Beginning process cycle at %s (UTC)", utcnow())
 #TODO Get database calls out of this file!
 conn = psycopg2.connect(DSN)
 curs = conn.cursor()
-socket.setdefaulttimeout(config["timeout"])
+socket.setdefaulttimeout(config.timeout)
 stat_re = re.compile('([0-9a-z]{1,8})\s+([0-9A-H?]{12}\s.*)')
 addy_re = re.compile('\$remailer\{\"([0-9a-z]{1,8})\"\}\s\=\s\"\<(.*)\>\s')
 numeric_re = re.compile('[0-9]{1,5}')
-index_file = '%(basedir)s/www/%(index_file)s' % config
-gene_html_file = '%(basedir)s/www/%(gene_report_name)s.html' % config
-age = hours_ago(config["active_age"])
-future = hours_ahead(config["active_future"])
-del config["active_future"] # Only used to calculate max_future
-config["gene_max_age"] = hours_ago(config["gene_age_days"] * 24)
-del config["gene_age_days"] # Only used to calc "gene_max_age"
+index_path = '%s/www/%s' % (config.basedir, config.index_file)
+gene_html_file = '%s/www/%s.html' % (config.basedir, config.gene_report_name)
+age = hours_ago(config.active_age)
+future = hours_ahead(config.active_future)
+#config["gene_max_age"] = hours_ago(config.gene_age_days * 24)
 
 # Are we running in testmode (without --live)
 testmode = 1
@@ -624,7 +595,7 @@ gene_find_new(age)
 #gene_find_dead(config)
 #db.gene_age_check()
 gene_write_text(config)
-gene_write_html(config, gene_html_file)
+#gene_write_html(config, gene_html_file)
 #This function will delete any remailer entries that are over a defined
 #age, (672 hours).
 db.housekeeping(hours_ago(672))  # 672Hrs = 28Days
@@ -643,11 +614,11 @@ for rem_list in rem_names:
     # We need to append a filename to vitals in order to generate the file
     # within a function.
     remailer_vitals["filename"], \
-    remailer_vitals["urlname"] = remailer_filename(config["basedir"], config["baseurl"], name, addy)
+    remailer_vitals["urlname"] = remailer_filename(config.basedir, config.baseurl, name, addy)
     logger.debug("Writing stats file for %s %s", name, addy)
     write_remailer_stats(remailer_vitals)
     index_html.append(index_remailers(remailer_vitals, rotate_color, ping_names))
     rotate_color = not rotate_color
-index_generate(index_html, index_file)
+index_generate(index_html, index_path)
 #index.close()
 logger.info("Processing cycle completed at %s (UTC)", utcnow())
