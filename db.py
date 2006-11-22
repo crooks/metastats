@@ -16,11 +16,16 @@
 # or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
 # for more details.
 
-import psycopg
+import psycopg2
 
-DSN = 'dbname=remailers user=stats'
+#TODO Use a config file to define db and username
+DSN = 'dbname=metastats user=crooks'
+try:
+    conn = psycopg2.connect(DSN)
+except:
+    #TODO initialise logging so we don't have printed errors
+    print "Failed to connect to database"
 
-conn = psycopg.connect(DSN)
 curs = conn.cursor()
 
 # Insert a new entry into the mlist2 table

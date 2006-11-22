@@ -17,7 +17,7 @@
 # for more details.
 
 import datetime
-import psycopg
+import psycopg2
 import socket
 import urllib2
 import logging
@@ -32,7 +32,7 @@ from timefunc import arpa_check
 #from configobj import ConfigObj
 #from validate import Validator
 
-DSN = 'dbname=remailers user=stats'
+DSN = 'dbname=metastats user=crooks'
 
 config = {
     # Directory where this program resides
@@ -580,7 +580,8 @@ def index_remailers(vitals, rotate_color, ping_names):
 # ----- Start of main routine -----
 init_logging() # Before anything else, initialise logging.
 logger.info("Beginning process cycle at %s (UTC)", utcnow())
-conn = psycopg.connect(DSN)
+#TODO Get database calls out of this file!
+conn = psycopg2.connect(DSN)
 curs = conn.cursor()
 socket.setdefaulttimeout(config["timeout"])
 stat_re = re.compile('([0-9a-z]{1,8})\s+([0-9A-H?]{12}\s.*)')
