@@ -38,9 +38,9 @@ def insert(stat_line):
                         %(url_rem_name)s,
                         %(url_rem_addy)s,
                         %(url_lat_hist)s,
-                        %(url_lat_time)i,
+                        %(url_lat_time)s,
                         %(url_up_hist)s,
-                        %(url_up_time)i,
+                        %(url_up_time)s,
                         %(url_options)s,
                         %(url_timestamp)s)""", stat_line)
     conn.commit()
@@ -51,9 +51,9 @@ def insert(stat_line):
 def update(stat_line):
     curs.execute("""UPDATE mlist2 SET 
                         lat_hist = %(url_lat_hist)s,
-                        lat_time = %(url_lat_time)i,
+                        lat_time = %(url_lat_time)s,
                         up_hist = %(url_up_hist)s,
-                        up_time = %(url_up_time)i,
+                        up_time = %(url_up_time)s,
                         options = %(url_options)s,
                         timestamp = %(url_timestamp)s
                     WHERE
@@ -186,10 +186,10 @@ def remailer_stats(conf):
                     rem_addy = %(rem_addy)s AND
                     timestamp >= cast(%(max_age)s AS timestamp) AND
                     timestamp <= cast(%(max_future)s AS timestamp) AND
-                    up_time >= cast(%(rem_uptime_avg_all)d - %(rem_uptime_stddev_all)d AS int) AND
-                    up_time <= cast(%(rem_uptime_avg_all)d + %(rem_uptime_stddev_all)d AS int) AND
-                    lat_time >= cast(%(rem_latency_avg_all)d - %(rem_latency_stddev_all)d AS int) AND
-                    lat_time <= cast(%(rem_latency_avg_all)d + %(rem_latency_stddev_all)d AS int) AND
+                    up_time >= cast(%(rem_uptime_avg_all)s - %(rem_uptime_stddev_all)s AS int) AND
+                    up_time <= cast(%(rem_uptime_avg_all)s + %(rem_uptime_stddev_all)s AS int) AND
+                    lat_time >= cast(%(rem_latency_avg_all)s - %(rem_latency_stddev_all)s AS int) AND
+                    lat_time <= cast(%(rem_latency_avg_all)s + %(rem_latency_stddev_all)s AS int) AND
                     up_hist !~ '^[0?]{12}$' and
                     lat_time < 5999""", conf)
     return curs.fetchone()
@@ -204,8 +204,8 @@ def remailer_average_uptime(conf):
                     WHERE rem_name = %(rem_name)s AND
                     rem_addy = %(rem_addy)s AND
                     timestamp >= cast(%(max_age)s AS timestamp) AND
-                    up_time >= cast(%(rem_uptime_avg_all)d - %(rem_uptime_stddev_all)d AS int) AND
-                    up_time <= cast(%(rem_uptime_avg_all)d + %(rem_uptime_stddev_all)d AS int)""",conf)
+                    up_time >= cast(%(rem_uptime_avg_all)s - %(rem_uptime_stddev_all)s AS int) AND
+                    up_time <= cast(%(rem_uptime_avg_all)s + %(rem_uptime_stddev_all)s AS int)""",conf)
     average = curs.fetchone()
     if average[0]:
         return average[0] / 10.0
@@ -219,7 +219,7 @@ def remailer_average_uptime_all(conf):
                     WHERE rem_name = %(rem_name)s AND
                     rem_addy = %(rem_addy)s AND
                     timestamp >= cast(%(max_age)s AS timestamp) AND
-                    up_time >= cast(%(low_bound)d AS smallint)""", conf)
+                    up_time >= cast(%(low_bound)s AS smallint)""", conf)
     average = curs.fetchone()
     if average[0]:
         return average[0]
@@ -233,7 +233,7 @@ def remailer_stddev_uptime(conf):
                     WHERE rem_name = %(rem_name)s AND
                     rem_addy = %(rem_addy)s AND
                     timestamp >= cast(%(max_age)s AS timestamp) AND
-                    up_time >= cast(%(low_bound)d AS smallint) AND
+                    up_time >= cast(%(low_bound)s AS smallint) AND
                     lat_time < 5940""", conf)
     stddev = curs.fetchone()
     if stddev[0]:
@@ -247,7 +247,7 @@ def remailer_stddev_latency(conf):
                     WHERE rem_name = %(rem_name)s AND
                     rem_addy = %(rem_addy)s AND
                     timestamp >= cast(%(max_age)s AS timestamp) AND
-                    up_time >= cast(%(low_bound)d AS smallint) AND
+                    up_time >= cast(%(low_bound)s AS smallint) AND
                     lat_time < 5940""", conf)
     stddev = curs.fetchone()
     if stddev[0]:
@@ -261,8 +261,8 @@ def remailer_average_latency(conf):
                     WHERE rem_name = %(rem_name)s AND
                     rem_addy = %(rem_addy)s AND
                     timestamp >= cast(%(max_age)s AS timestamp) AND
-                    lat_time >= cast(%(rem_latency_avg_all)d - %(rem_latency_stddev_all)d AS int) AND
-                    lat_time <= cast(%(rem_latency_avg_all)d + %(rem_latency_stddev_all)d AS int)""", conf)
+                    lat_time >= cast(%(rem_latency_avg_all)s - %(rem_latency_stddev_all)s AS int) AND
+                    lat_time <= cast(%(rem_latency_avg_all)s + %(rem_latency_stddev_all)s AS int)""", conf)
     latavg = curs.fetchone()
     if latavg[0]:
         return latavg[0]
@@ -286,10 +286,10 @@ def remailer_active_pings(conf):
                     rem_addy = %(rem_addy)s AND
                     timestamp >= cast(%(max_age)s AS timestamp) AND
                     timestamp <= cast(%(max_future)s AS timestamp) AND
-                    up_time >= cast(%(rem_uptime_avg_all)d - %(rem_uptime_stddev_all)d AS int) AND
-                    up_time <= cast(%(rem_uptime_avg_all)d + %(rem_uptime_stddev_all)d AS int) AND
-                    lat_time >= cast(%(rem_latency_avg_all)d - %(rem_latency_stddev_all)d AS int) AND
-                    lat_time <= cast(%(rem_latency_avg_all)d + %(rem_latency_stddev_all)d AS int) AND
+                    up_time >= cast(%(rem_uptime_avg_all)s - %(rem_uptime_stddev_all)s AS int) AND
+                    up_time <= cast(%(rem_uptime_avg_all)s + %(rem_uptime_stddev_all)s AS int) AND
+                    lat_time >= cast(%(rem_latency_avg_all)s - %(rem_latency_stddev_all)s AS int) AND
+                    lat_time <= cast(%(rem_latency_avg_all)s + %(rem_latency_stddev_all)s AS int) AND
                     up_hist !~ '^[0?]{12}$' and
                     lat_time < 5999
                     ORDER BY up_time DESC, ping_name ASC""", conf)
@@ -316,10 +316,10 @@ def remailer_ignored_pings(conf):
                     rem_addy = %(rem_addy)s AND
                     timestamp >= cast(%(max_age)s AS timestamp) AND
                     timestamp <= cast(%(max_future)s AS timestamp) AND
-                    (up_time < cast(%(rem_uptime_avg_all)d - %(rem_uptime_stddev_all)d AS int) OR
-                    up_time > cast(%(rem_uptime_avg_all)d + %(rem_uptime_stddev_all)d AS int) OR
-                    lat_time < cast(%(rem_latency_avg_all)d - %(rem_latency_stddev_all)d AS int) OR
-                    lat_time > cast(%(rem_latency_avg_all)d + %(rem_latency_stddev_all)d AS int) OR
+                    (up_time < cast(%(rem_uptime_avg_all)s - %(rem_uptime_stddev_all)s AS int) OR
+                    up_time > cast(%(rem_uptime_avg_all)s + %(rem_uptime_stddev_all)s AS int) OR
+                    lat_time < cast(%(rem_latency_avg_all)s - %(rem_latency_stddev_all)s AS int) OR
+                    lat_time > cast(%(rem_latency_avg_all)s + %(rem_latency_stddev_all)s AS int) OR
                     up_hist ~ '^[0?]{12}$' OR
                     lat_time = 5999)
                     ORDER BY up_time DESC, ping_name ASC""", conf)

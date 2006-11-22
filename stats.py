@@ -36,10 +36,10 @@ DSN = 'dbname=metastats user=crooks'
 
 config = {
     # Directory where this program resides
-    "basedir" : "/home/stats/pyprod",
+    "basedir" : "/home/crooks/testing",
 
     # Base URL for access to stats
-    "baseurl" : "http://stats.bananasplit.info",
+    "baseurl" : "http://stats.mixmin.org",
 
     # Name of index file
     "index_file" : "index.html",
@@ -68,10 +68,11 @@ def init_logging():
     further operations are logged."""
     loglevels = {'debug': logging.DEBUG, 'info': logging.INFO,
                 'warn': logging.WARN, 'error': logging.ERROR}
-    level = loglevels['info']
+    level = loglevels['debug']
     global logger
     logger = logging.getLogger('stats')
-    hdlr = logging.FileHandler("/home/stats/pyprod/log")
+    #TODO Following should be defined in a config file
+    hdlr = logging.FileHandler("/home/crooks/metalog")
     formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
     hdlr.setFormatter(formatter)
     logger.addHandler(hdlr)
@@ -154,11 +155,11 @@ def url_process(pinger_name,pinger):
                     lat_hist = line[0:13]
                     lat_hour = numeric(line[14:16]) * 60
                     lat_min = numeric(line[17:20])
-                    lat_time = lat_hour + lat_min
+                    lat_time = int(lat_hour + lat_min)
                     up_hist = line[22:34]
                     up_dec = numeric(line[36:39]) * 10
                     up_frac = numeric(line[40:41])
-                    up_time = up_dec + up_frac
+                    up_time = int(up_dec + up_frac)
                     options = line[44:59]
                 except:
                     logger.warn("Malformed stats line for remailer %s whilst processing pinger %s", remailer, pinger_name)
@@ -209,16 +210,16 @@ def remailer_filename(dir, url ,name, addy):
 # Take a db row and convert to a textual presentation
 def db_process(row):
     ping_name = row[0].ljust(24)
-    lat_hist = row[2].ljust(14)
-    lat_time1 = latent_timestamp(row[3])
+    lat_hist = row[3].ljust(14)
+    lat_time1 = latent_timestamp(row[4])
     lat_time = lat_time1.ljust(6)
-    up_hist = row[4].ljust(14)
-    up_time1 = row[5] / 10.0
+    up_hist = row[5].ljust(14)
+    up_time1 = row[6] / 10.0
     up_time2 = "%3.1f%%" % up_time1
     up_time3 = up_time2.rjust(6)
     up_time = up_time3.ljust(7)
-    options = row[6].ljust(17)
-    timestamp1 = row[7]
+    options = row[7].ljust(17)
+    timestamp1 = row[8]
     timestamp = timestamp1.strftime("%Y-%m-%d %H:%M")
     line = " " + ping_name + lat_hist + lat_time + up_hist + up_time + options + timestamp + "\n"
     return line
@@ -474,9 +475,9 @@ def write_remailer_stats(vitals):
     statfile.write("Active:\t%d\n" % vitals["rem_active_count"])
     statfile.write("\nUptime\n")
     statfile.write(" Lowest:\t%3.2f%%\t\t" % (vitals["rem_uptime_min"]/10.00))
-    statfile.write("Average:\t%3.2f%%\n" % (vitals["rem_uptime_avg"]/10.00))
+    statfile.write("Average:\t%3.2f%%\n" % (float(vitals["rem_uptime_avg"])/10.00))
     statfile.write(" Highest:\t%3.2f%%\t\t" % (vitals["rem_uptime_max"]/10.00))
-    statfile.write("StdDev:\t%3.2f%%\n" % (vitals["rem_uptime_stddev"]/10.00))
+    statfile.write("StdDev:\t%3.2f%%\n" % (float(vitals["rem_uptime_stddev"])/10.00))
     statfile.write("\nLatency\n")
     statfile.write(" Lowest:\t%d:%02d\t\t" % hours_mins(vitals["rem_latency_min"]))
     statfile.write("Average:\t%d:%02d\n" % hours_mins(vitals["rem_latency_avg"]))
@@ -569,8 +570,8 @@ def index_remailers(vitals, rotate_color, ping_names):
         body = body + result
 
     # Write an average uptime to the end of each remailer row
-    vitals["rem_uptime_avg_all_div10"] = vitals["rem_uptime_avg_all"] / 10.00
-    vitals["rem_uptime_stddev_all_div10"] = vitals["rem_uptime_stddev_all"] / 10.00
+    vitals["rem_uptime_avg_all_div10"] = vitals["rem_uptime_avg_all"] / 10
+    vitals["rem_uptime_stddev_all_div10"] = vitals["rem_uptime_stddev_all"] / 10
     summary = '<td>%(rem_uptime_avg_all_div10)3.2f</td> \
 <td>%(rem_uptime_stddev_all_div10)3.2f</td> \
 <td>%(rem_count_all)d</td></tr>\n' % vitals
