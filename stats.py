@@ -248,7 +248,7 @@ def gen_remailer_vitals(name, addy, age, future):
 # the current time.  Entries in genealogy table are excluded if the already
 # have a last_seen address.  This accounts for remailers returning with the
 # same name and address.
-def gene_find_new(age):
+def gene_find_new(age, now):
     curs.execute("""SELECT rem_name,rem_addy FROM mlist2 WHERE
                     rem_name IS NOT NULL AND
                     rem_addy IS NOT NULL AND
@@ -260,7 +260,7 @@ def gene_find_new(age):
     for new_remailer in new_remailers:
         new_data = {'new_remailer_name':new_remailer[0],
                     'new_remailer_addy':new_remailer[1],
-                    'new_remailer_time':utcnow()}
+                    'new_remailer_time':now}
         gene_insert_new(new_data)
 
 # This function is called from gene_find_new for each newly discovered
@@ -558,7 +558,7 @@ else:
     logger.debug("Running in testmode, url's will not be retreived")
 
 
-gene_find_new(age)
+gene_find_new(age, utcnow())
 #gene_write_text(config)
 gene_write_html(gene_path)
 #This function will delete any remailer entries that are over a defined
