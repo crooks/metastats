@@ -334,19 +334,6 @@ def remailer_getop(name, addy):
                     rem_addy = %s""", (name, addy))
     return curs.fetchone()
 
-# Check that remailers in the genealogy table have a last_seen date that's
-# always later or equal to the first_seen date.  Ignore entries with no
-# last_seen date, although this shouldn't really make any difference.  The only
-# situation where this should do anything is when all the pingers for a given
-# remailer show an up_hist nothing but 0's and ?'s.  Most pingers delist a
-# remailer before the 12 day requirement this would need.
-def gene_age_check():
-    curs.execute("""UPDATE genealogy SET
-                    last_seen = first_seen WHERE
-                    first_seen > last_seen AND
-                    last_seen IS NOT NULL""")
-    conn.commit()
-
 # Called from failed.py, this routine puts a last_fail timestamp in the
 # genealogy table providing there isn't already one set and last_seen
 # is also unset.  The mark_recovered routine removes the last_fail

@@ -279,34 +279,6 @@ def gene_insert_new(remailer):
                         %(new_remailer_time)s)""", remailer)
     conn.commit()
 
-# Check to see if any remailers exist in genealogy but not in mlist2.  If any
-# are found, then add a last_seen date to that entry.  Once an entry has a
-# last_seen address, it should never be updated again.  Note, date is 672 hours
-# ago as remailers in mlist2 are only dead after not being seen for 28 days.
-def gene_find_dead(conf):
-    curs.execute("""SELECT rem_name,rem_addy FROM genealogy WHERE
-                    last_seen IS NULL AND
-                    rem_addy IS NOT NULL EXCEPT
-                    (SELECT rem_name,rem_addy FROM mlist2 WHERE
-                    timestamp >= cast(%(gene_max_age)s AS timestamp) AND
-                    up_hist !~ '^[0?]{12}$')""", conf)
-    dead_remailers = curs.fetchall()
-    for dead_remailer in dead_remailers:
-        dead_data = {'dead_remailer_name':dead_remailer[0],
-                     'dead_remailer_addy':dead_remailer[1],
-                     'dead_remailer_time':conf['gene_max_age']}
-        gene_update_dead(dead_data)
-
-# This function is called from gene_find_dead for each dead remailer.  It writes the
-# last_seen date to the genealogy database.
-def gene_update_dead(remailer):
-    curs.execute("""UPDATE genealogy SET 
-                        last_seen = %(dead_remailer_time)s
-                    WHERE
-                        rem_name = %(dead_remailer_name)s AND
-                        rem_addy = %(dead_remailer_addy)s""", remailer)
-    conn.commit()
-
 def gene_dup_check(dups):
     for dup in dups:
         name, addy, count = dup
@@ -591,12 +563,6 @@ else:
 
 
 gene_find_new(age)
-#TODO: Delete the following lines if all seems to be working well.
-#TODO: Delete obsolete functions in accordance with above.
-# Remarked out gene_find_dead as I think housekeeping should now
-# perform this task.  This also negates the need for gene_age_check.
-#gene_find_dead(config)
-#db.gene_age_check()
 #gene_write_text(config)
 gene_write_html(gene_path)
 #This function will delete any remailer entries that are over a defined
