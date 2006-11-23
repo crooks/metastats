@@ -558,7 +558,7 @@ else:
     logger.debug("Running in testmode, url's will not be retreived")
 
 
-gene_find_new(age, utcnow())
+db.gene_find_new(age, utcnow())
 #gene_write_text(config)
 gene_write_html(gene_path)
 #This function will delete any remailer entries that are over a defined
