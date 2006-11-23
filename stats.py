@@ -16,15 +16,14 @@
 # or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
 # for more details.
 
-import config
 import datetime
-import psycopg2
 import socket
 import urllib2
 import logging
 import re
 import sys
 
+import config
 import db
 from timefunc import utcnow
 from timefunc import hours_ago
@@ -489,10 +488,6 @@ def index_remailers(vitals, rotate_color, ping_names):
 # ----- Start of main routine -----
 init_logging() # Before anything else, initialise logging.
 logger.info("Beginning process cycle at %s (UTC)", utcnow())
-#TODO Get database calls out of this file!
-DSN = 'dbname=%s user=%s' % (config.dbname, config.dbuser)
-conn = psycopg2.connect(DSN)
-curs = conn.cursor()
 socket.setdefaulttimeout(config.timeout)
 stat_re = re.compile('([0-9a-z]{1,8})\s+([0-9A-H?]{12}\s.*)')
 addy_re = re.compile('\$remailer\{\"([0-9a-z]{1,8})\"\}\s\=\s\"\<(.*)\>\s')
