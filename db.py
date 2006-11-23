@@ -246,9 +246,11 @@ def update_contacts():
         conn.commit()
 
 # Get a list of all genealogy details for report production.
-# TODO Don't use *, enforce a field order
 def gene_get_stats():
-    curs.execute("""SELECT * FROM genealogy WHERE
+    curs.execute("""SELECT rem_name, rem_addy, first_seen,
+                    last_seen, last_fail, comments FROM
+                    genealogy WHERE
+                    rem_name IS NOT NULL AND
                     rem_addy IS NOT NULL
                     ORDER BY last_seen DESC,rem_name ASC""")
     return curs.fetchall()

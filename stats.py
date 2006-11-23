@@ -301,10 +301,7 @@ def gene_write_html(filename):
     genefile.write('<th>First Seen Date</th><th>Died On Date</th>')
     genefile.write('<th>Failed Date</th><th>Comments</th>\n</tr>\n')
 
-    curs.execute("""SELECT rem_name, rem_addy, first_seen,
-                    last_seen, last_fail, comments FROM
-                    genealogy ORDER BY last_seen DESC,rem_name ASC""")
-    genealogies = curs.fetchall()
+    genealogies = db.gene_get_stats()
 
     rotate_color = 0
     for genealogy in genealogies:
