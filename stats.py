@@ -347,7 +347,7 @@ def gene_write_text(conf):
     genefile.close()
 
 # This routine will generate a html formated genealogy file.
-def gene_write_html(conf, filename):
+def gene_write_html(filename):
     logger.debug("Writing Geneology HTML file %s", filename)
     genefile = open(filename,'w')
     # Write standard html header section
@@ -373,64 +373,67 @@ def gene_write_html(conf, filename):
 
     rotate_color = 0
     for genealogy in genealogies:
-
         #Set up some friendly names for fields
-        if genealogy[0]: conf["rem_name"] = genealogy[0]
-        if genealogy[1]: conf["rem_addy"] = genealogy[1]
-        if genealogy[1]: conf["rem_addy_noat"] = genealogy[1].replace('@','.')
-        if genealogy[2]: conf["first_seen"] = genealogy[2].strftime("%Y-%m-%d")
-        if genealogy[3]: conf["last_seen"] = genealogy[3].strftime("%Y-%m-%d")
-        if genealogy[4]: conf["last_fail"] = genealogy[4].strftime("%Y-%m-%d")
-        if genealogy[5]: conf["comments"] = genealogy[5]
+        if genealogy[0]: rem_name = genealogy[0]
+        else: logger.error("Genealogy entry with no remailer name")
+        if genealogy[1]:
+            rem_addy = genealogy[1]
+            rem_addy_noat = genealogy[1].replace('@','.')
+        else: logger.error("Genealogy entry with no remailer address")
+        if genealogy[2]: first_seen = genealogy[2].strftime("%Y-%m-%d")
+        else: first_seen = False
+        if genealogy[3]: last_seen = genealogy[3].strftime("%Y-%m-%d")
+        else: last_seen = False
+        if genealogy[4]: last_fail = genealogy[4].strftime("%Y-%m-%d")
+        else: last_fail = False
+        if genealogy[5]: comments = genealogy[5]
+        else: comments = ""
         
         # Rotate background colours for rows
         if rotate_color:
-            conf["bgcolor"] = "#ADD8E6"
+            bgcolor = "#ADD8E6"
         else:
-            conf["bgcolor"] = "#E0FFFF"
+            bgcolor = "#E0FFFF"
         rotate_color = not rotate_color
 
-        if conf.has_key("last_seen"):
-            genefile.write('<tr bgcolor="%(bgcolor)s"><th class="tableleft">%(rem_name)s</th>\n' % conf)
+        if last_seen:
+            genefile.write('<tr bgcolor="%s">' % bgcolor)
+            genefile.write('<th class="tableleft">%s</th>\n' % rem_name)
         else:
-            conf["geneurl"] = '%s/%(rem_name)s.%(rem_addy_noat)s.txt' % (config.baseurl, conf)
-            genefile.write('<tr bgcolor="%(bgcolor)s"><th class="tableleft"><a href="%(geneurl)s" title="%(rem_addy)s">%(rem_name)s</a></th>\n' % conf)
+            geneurl = '%s/%s.%s.txt' % (config.baseurl, rem_name, rem_addy_noat)
+            genefile.write('<tr bgcolor="%s"><th class="tableleft">' % bgcolor)
+            genefile.write('<a href="%s" title="%s">' % (geneurl, rem_addy))
+            genefile.write('%s</a></th>\n' % rem_name)
 
         # If the remailer address exists, write a table cell for it
-        if conf.has_key("rem_addy"):
-            genefile.write('<td>%(rem_addy)s</td>' % conf)
-            del conf["rem_addy"]
+        if rem_addy:
+            genefile.write('<td>%s</td>' % rem_addy)
         else:
             genefile.write('<td></td>')
 
         # If the remailer has a first_seen entry, write a table cell for it
-        if conf.has_key("first_seen"):
-            genefile.write('<td>%(first_seen)s</td>' % conf)
-            del conf["first_seen"]
+        if first_seen:
+            genefile.write('<td>%s</td>' % first_seen)
         else:
             genefile.write('<td></td>')
 
         # If thre remailer has a lest_seen entry, write a table cell for it
-        if conf.has_key("last_seen"):
-            genefile.write('<td>%(last_seen)s</td>' % conf)
-            del conf["last_seen"]
+        if last_seen:
+            genefile.write('<td>%s</td>' % last_seen)
         else:
             genefile.write('<td></td>')
 
         # If the remailer has a lest_fail entry, write a table cell for it
-        if conf.has_key("last_fail"):
-            genefile.write('<td>%(last_fail)s</td>' % conf)
-            del conf["last_fail"]
+        if last_fail:
+            genefile.write('<td>%s</td>' % last_fail)
         else:
             genefile.write('<td></td>')
 
         # If the remailer has a comment, write a table cell for it
-        if conf.has_key("comments"):
-            genefile.write('<td>%(comments)s</td>' % conf)
-            del conf["comments"]
+        if comments:
+            genefile.write('<td>%s</td>' % comments)
         else:
             genefile.write('<td></td>')
-
         genefile.write('<tr>\n')
     genefile.write('</table>\n')
     genefile.write('<br>Last update: %s (UTC)<br>\n' % utcnow())
@@ -562,7 +565,7 @@ stat_re = re.compile('([0-9a-z]{1,8})\s+([0-9A-H?]{12}\s.*)')
 addy_re = re.compile('\$remailer\{\"([0-9a-z]{1,8})\"\}\s\=\s\"\<(.*)\>\s')
 numeric_re = re.compile('[0-9]{1,5}')
 index_path = '%s/www/%s' % (config.basedir, config.index_file)
-gene_html_file = '%s/www/%s.html' % (config.basedir, config.gene_report_name)
+gene_path = '%s/www/%s.html' % (config.basedir, config.gene_report_name)
 age = hours_ago(config.active_age)
 future = hours_ahead(config.active_future)
 #config["gene_max_age"] = hours_ago(config.gene_age_days * 24)
@@ -594,8 +597,8 @@ gene_find_new(age)
 # perform this task.  This also negates the need for gene_age_check.
 #gene_find_dead(config)
 #db.gene_age_check()
-gene_write_text(config)
-#gene_write_html(config, gene_html_file)
+#gene_write_text(config)
+gene_write_html(gene_path)
 #This function will delete any remailer entries that are over a defined
 #age, (672 hours).
 db.housekeeping(hours_ago(672))  # 672Hrs = 28Days
