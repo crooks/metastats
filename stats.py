@@ -30,9 +30,6 @@ from timefunc import utcnow
 from timefunc import hours_ago
 from timefunc import hours_ahead
 from timefunc import arpa_check
-#from configobj import ConfigObj
-#from validate import Validator
-
 
 # --- Configuration ends here -----
 
@@ -44,7 +41,6 @@ def init_logging():
     level = loglevels[config.loglevel]
     global logger
     logger = logging.getLogger('stats')
-    #TODO Following should be defined in a config file
     hdlr = logging.FileHandler(config.logfile)
     formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
     hdlr.setFormatter(formatter)
