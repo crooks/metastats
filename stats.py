@@ -243,37 +243,6 @@ def gen_remailer_vitals(name, addy, age, future):
         vitals["rem_uptime_stddev"] = 0
     return vitals
 
-# Check to see if there are any remailer names in the mlist2 table that don't
-# exist in the genealogy table.  If there are any, then write them along with
-# the current time.  Entries in genealogy table are excluded if the already
-# have a last_seen address.  This accounts for remailers returning with the
-# same name and address.
-def gene_find_new(age, now):
-    curs.execute("""SELECT rem_name,rem_addy FROM mlist2 WHERE
-                    rem_name IS NOT NULL AND
-                    rem_addy IS NOT NULL AND
-                    timestamp > cast(%s AS timestamp) AND
-                    up_hist !~ '^[0?]{12}$' EXCEPT
-                    (SELECT rem_name,rem_addy FROM genealogy WHERE
-                    last_seen IS NULL)""", (age,))
-    new_remailers = curs.fetchall()
-    for new_remailer in new_remailers:
-        new_data = {'new_remailer_name':new_remailer[0],
-                    'new_remailer_addy':new_remailer[1],
-                    'new_remailer_time':now}
-        gene_insert_new(new_data)
-
-# This function is called from gene_find_new for each newly discovered
-# remailer.
-def gene_insert_new(remailer):
-    curs.execute("""INSERT INTO genealogy 
-                        (rem_name, rem_addy, first_seen)
-                    VALUES (
-                        %(new_remailer_name)s,
-                        %(new_remailer_addy)s,
-                        %(new_remailer_time)s)""", remailer)
-    conn.commit()
-
 def gene_dup_check(dups):
     for dup in dups:
         name, addy, count = dup
