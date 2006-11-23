@@ -26,6 +26,12 @@ basedir = "/home/crooks/testing"
 # Base URL for access to stats
 baseurl = "http://stats.mixmin.org"
 
+# Fully qualified logfile name
+logfile = "/home/crooks/metalog"
+
+# Loglevel, can be debug, info, warn or error
+loglevel = "debug"
+
 # Name of the metastats database
 dbname = "metastats"
 

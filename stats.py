@@ -41,11 +41,11 @@ def init_logging():
     further operations are logged."""
     loglevels = {'debug': logging.DEBUG, 'info': logging.INFO,
                 'warn': logging.WARN, 'error': logging.ERROR}
-    level = loglevels['debug']
+    level = loglevels[config.loglevel]
     global logger
     logger = logging.getLogger('stats')
     #TODO Following should be defined in a config file
-    hdlr = logging.FileHandler("/home/crooks/metalog")
+    hdlr = logging.FileHandler(config.logfile)
     formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
     hdlr.setFormatter(formatter)
     logger.addHandler(hdlr)
