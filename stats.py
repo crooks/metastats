@@ -33,7 +33,6 @@ from timefunc import arpa_check
 #from configobj import ConfigObj
 #from validate import Validator
 
-DSN = 'dbname=metastats user=crooks'
 
 # --- Configuration ends here -----
 
@@ -530,6 +529,7 @@ def index_remailers(vitals, rotate_color, ping_names):
 init_logging() # Before anything else, initialise logging.
 logger.info("Beginning process cycle at %s (UTC)", utcnow())
 #TODO Get database calls out of this file!
+DSN = 'dbname=%s user=%s' % (config.dbname, config.dbuser)
 conn = psycopg2.connect(DSN)
 curs = conn.cursor()
 socket.setdefaulttimeout(config.timeout)

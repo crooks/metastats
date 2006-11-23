@@ -26,6 +26,12 @@ basedir = "/home/crooks/testing"
 # Base URL for access to stats
 baseurl = "http://stats.mixmin.org"
 
+# Name of the metastats database
+dbname = "metastats"
+
+# Name of the database user account
+dbuser = "crooks"
+
 # Name of index file
 index_file = "index.html"
 

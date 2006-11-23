@@ -16,10 +16,10 @@
 # or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
 # for more details.
 
+import config
 import psycopg2
 
-#TODO Use a config file to define db and username
-DSN = 'dbname=metastats user=crooks'
+DSN = 'dbname=%s user=%s' % (config.dbname, config.dbuser)
 try:
     conn = psycopg2.connect(DSN)
 except:
