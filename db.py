@@ -45,22 +45,6 @@ def insert(stat_line):
                         %(url_timestamp)s)""", stat_line)
     conn.commit()
 
-# Update a stats entry where the ping_name and rem_name match
-# those being fed to the function.  Note, this function isn't currently
-# called.
-def update(stat_line):
-    curs.execute("""UPDATE mlist2 SET 
-                        lat_hist = %(url_lat_hist)s,
-                        lat_time = %(url_lat_time)s,
-                        up_hist = %(url_up_hist)s,
-                        up_time = %(url_up_time)s,
-                        options = %(url_options)s,
-                        timestamp = %(url_timestamp)s
-                    WHERE
-                        ping_name = %(url_ping_name)s AND
-                        rem_name = %(url_rem_name)s""", stat_line)
-    conn.commit()
-
 # Delete entries from mlist2 that match ping_name and rem_name
 def delete(stat_line):
     curs.execute("""DELETE FROM mlist2 WHERE 
@@ -68,14 +52,6 @@ def delete(stat_line):
                         rem_name = %(url_rem_name)s AND
                         rem_addy = %(url_rem_addy)s""", stat_line)
     conn.commit()
-
-# Select entries in mlist2 that match ping_name and rem_name.
-# This function is not currently called.
-def select(stat_line):
-    curs.execute("""SELECT * FROM mlist2 WHERE
-                        ping_name = %(url_ping_name)s AND
-                        rem_name = %(url_rem_name)s""", stat_line)
-    return curs.fetchall()
 
 # Called from stats.py to perform various housekeeping tasks.
 def housekeeping(age):
@@ -116,13 +92,6 @@ def count_total_pingers():
 # Count pingers that are conisdered active for a given remailer.  Active in
 # this context means they have shown a ping for that remailer within a
 # defined period of time.
-def count_active_pings(conf):
-    curs.execute("""SELECT count(*) FROM mlist2 WHERE
-                    rem_name = %(rem_name)s AND
-                    rem_addy = %(rem_addy)s AND
-                    timestamp > cast(%(max_age)s AS timestamp)""", conf)
-    ping_count = curs.fetchone()
-    return ping_count[0]
 
 # Return a list of remailer names in mlist2.  Just that.
 def distinct_rem_names():
@@ -157,28 +126,6 @@ def remailer_avgs_all(conf):
                     up_time > 0""", conf)
     return curs.fetchone()
 
-# Calculate the average latency for a given remailer.  The figure 5940
-# is significant as it results in excluding remailers with a latency of 99.59.
-def remailer_average_latency_all(conf):
-    curs.execute("""SELECT avg(lat_time) FROM mlist2
-                    WHERE rem_name = %(rem_name)s AND
-                    rem_addy = %(rem_addy)s AND
-                    timestamp >= cast(%(max_age)s AS timestamp) AND
-                    lat_time < 5940""", conf)
-    average = curs.fetchone()
-    if average[0]:
-        return average[0]
-    else:
-        return 0
-
-# Calculate the lowest latency for a given remailer.
-def remailer_low_latency(conf):
-    curs.execute("""SELECT min(lat_time) FROM mlist2
-                    WHERE rem_name = %(rem_name)s AND
-                    rem_addy = %(rem_addy)s AND
-                    timestamp >= cast(%(max_age)s AS timestamp)""", conf)
-    return curs.fetchone()
-
 def remailer_stats(conf):
     curs.execute("""SELECT min(lat_time), avg(lat_time), max(lat_time), stddev(lat_time),
                     min(up_time), avg(up_time), max(up_time), stddev(up_time), count(*) FROM mlist2 WHERE
@@ -193,81 +140,6 @@ def remailer_stats(conf):
                     up_hist !~ '^[0?]{12}$' and
                     lat_time < 5999""", conf)
     return curs.fetchone()
-
-# Calculate the average uptime of remailers that fall within defined
-# boundaries.  Uptime is stored in the database *10 so that 0.1 accuracy
-# can be held in an integer.  This is resolved before returning.  The condition
-# is required, just in case no remailers meet the criteria.  This would result in
-# average[0] being non-existant.
-def remailer_average_uptime(conf):
-    curs.execute("""SELECT avg(up_time) FROM mlist2
-                    WHERE rem_name = %(rem_name)s AND
-                    rem_addy = %(rem_addy)s AND
-                    timestamp >= cast(%(max_age)s AS timestamp) AND
-                    up_time >= cast(%(rem_uptime_avg_all)s - %(rem_uptime_stddev_all)s AS int) AND
-                    up_time <= cast(%(rem_uptime_avg_all)s + %(rem_uptime_stddev_all)s AS int)""",conf)
-    average = curs.fetchone()
-    if average[0]:
-        return average[0] / 10.0
-    else:
-        return 0
-
-# Calculate the average uptime of a remailer.  Just like the previous function
-# but ignoring the upper and lower boundaries.
-def remailer_average_uptime_all(conf):
-    curs.execute("""SELECT avg(up_time) FROM mlist2
-                    WHERE rem_name = %(rem_name)s AND
-                    rem_addy = %(rem_addy)s AND
-                    timestamp >= cast(%(max_age)s AS timestamp) AND
-                    up_time >= cast(%(low_bound)s AS smallint)""", conf)
-    average = curs.fetchone()
-    if average[0]:
-        return average[0]
-    else:
-        return 0
-
-# Calculate the Standard Deviation of a selected remailer.  Ignore remailer
-# that fail to meet the lower boundary.
-def remailer_stddev_uptime(conf):
-    curs.execute("""SELECT stddev(up_time) FROM mlist2
-                    WHERE rem_name = %(rem_name)s AND
-                    rem_addy = %(rem_addy)s AND
-                    timestamp >= cast(%(max_age)s AS timestamp) AND
-                    up_time >= cast(%(low_bound)s AS smallint) AND
-                    lat_time < 5940""", conf)
-    stddev = curs.fetchone()
-    if stddev[0]:
-        return stddev[0]
-    else:
-        return 0
-
-# Calculate the latency Standard Deviation of a selected remailer.
-def remailer_stddev_latency(conf):
-    curs.execute("""SELECT stddev(lat_time) FROM mlist2
-                    WHERE rem_name = %(rem_name)s AND
-                    rem_addy = %(rem_addy)s AND
-                    timestamp >= cast(%(max_age)s AS timestamp) AND
-                    up_time >= cast(%(low_bound)s AS smallint) AND
-                    lat_time < 5940""", conf)
-    stddev = curs.fetchone()
-    if stddev[0]:
-        return stddev[0]
-    else:
-        return 0
-
-# Calculate the average latency of a remailer based on it's Standard Deviation
-def remailer_average_latency(conf):
-    curs.execute("""SELECT avg(lat_time) FROM mlist2
-                    WHERE rem_name = %(rem_name)s AND
-                    rem_addy = %(rem_addy)s AND
-                    timestamp >= cast(%(max_age)s AS timestamp) AND
-                    lat_time >= cast(%(rem_latency_avg_all)s - %(rem_latency_stddev_all)s AS int) AND
-                    lat_time <= cast(%(rem_latency_avg_all)s + %(rem_latency_stddev_all)s AS int)""", conf)
-    latavg = curs.fetchone()
-    if latavg[0]:
-        return latavg[0]
-    else:
-        return 0
 
 def remailer_index_pings(conf):
     curs.execute("""SELECT ping_name,up_time/10.0 FROM mlist2
