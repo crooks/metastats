@@ -253,10 +253,9 @@ def gene_write_text(conf):
     genefile = open(filename,'w')
     line = "Remailer Geneology as of %s (UTC)\n\n" % utcnow()
     genefile.write(line)
-    curs.execute("""SELECT * FROM genealogy WHERE
-                    rem_addy IS NOT NULL
-                    ORDER BY last_seen DESC,rem_name ASC""")
-    genealogies = curs.fetchall()
+
+    # Fetch a list of lists containing the geneology table
+    genealogies = db.gene_get_stats()
 
     # Find the longest length of a remailer_addy.  We can use this to
     # format the width of the column in the resulting test file.

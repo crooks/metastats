@@ -245,6 +245,14 @@ def update_contacts():
                         VALUES(%s, %s)""", (entry[0], entry[1]))
         conn.commit()
 
+# Get a list of all genealogy details for report production.
+# TODO Don't use *, enforce a field order
+def gene_get_stats():
+    curs.execute("""SELECT * FROM genealogy WHERE
+                    rem_addy IS NOT NULL
+                    ORDER BY last_seen DESC,rem_name ASC""")
+    return curs.fetchall()
+
 # Check to see if there are any remailer names in the mlist2 table that don't
 # exist in the genealogy table.  If there are any, then write them along with
 # the current time.  Entries in genealogy table are excluded if the already
