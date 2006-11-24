@@ -496,7 +496,6 @@ index_path = '%s/www/%s' % (config.basedir, config.index_file)
 gene_path = '%s/www/%s.html' % (config.basedir, config.gene_report_name)
 age = hours_ago(config.active_age)
 future = hours_ahead(config.active_future)
-#config["gene_max_age"] = hours_ago(config.gene_age_days * 24)
 
 # Are we running in testmode (without --live)
 testmode = 1
