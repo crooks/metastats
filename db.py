@@ -278,24 +278,3 @@ def gene_insert_new(remailer):
                         %(new_remailer_addy)s,
                         %(new_remailer_time)s)""", remailer)
     conn.commit()
-
-# For a given remailer name, return the average uptime for today from up_hist.
-# In up_hist, a '+' indicates a score of 10.
-def up_today(entries):
-    count = 0
-    total = 0
-    for line in entries:
-        uptime = line[4]
-        uptime_now = uptime[-1]
-        if uptime_now == '+':
-            score = 10
-        elif uptime_now == '?':
-            score = 0
-        else:
-            score = int(uptime_now)
-        total += score
-        count += 1
-    if count:
-        return int(total/count)
-    else:
-        return 100
