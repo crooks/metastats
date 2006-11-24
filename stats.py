@@ -525,14 +525,11 @@ gene_write_html(gene_path)
 db.housekeeping(hours_ago(672))  # 672Hrs = 28Days
 gene_dup_check(db.gene_dup_count())
 
-rem_names = db.distinct_rem_names()
 ping_names = db.active_pinger_names()
 index_html = []
 index_html.append(index_header(ping_names))
 rotate_color = 0
-for rem_list in rem_names:
-    name = rem_list[0]
-    addy = rem_list[1]
+for name, addy in db.distinct_rem_names():
     logger.debug("Generating statsistics for remailer %s", name)
     remailer_vitals = gen_remailer_vitals(name, addy, age, future)
     # We need to append a filename to vitals in order to generate the file
