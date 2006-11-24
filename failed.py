@@ -58,11 +58,9 @@ current stats which means it cannot random hop pings back to the pinger.</i></P>
 </tr>''')
 
     rotate_color = 0
-    max_age = hours_ago(4)
-    max_future = hours_ahead(8)
 
     for name, addy in db.distinct_rem_names():
-        remailer_vitals = gen_remailer_vitals(name, addy, max_age, max_future)
+        remailer_vitals = gen_remailer_vitals(name, addy)
         logger.debug("Checking remailer %s %s", name, addy)
         addy_noat = addy.replace('@',".")
         full_name = "%s.%s" % (name, addy_noat)

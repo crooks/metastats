@@ -169,10 +169,10 @@ def hours_mins(mins):
     return hours, minutes
 
 # Make a filename for each remailer_stats file.
-def remailer_filename(dir, url ,name, addy):
+def remailer_filename(name, addy):
     noat = addy.replace('@',".")
-    filename = '%s/www/%s.%s.txt' % (dir, name, noat)
-    urlname = '%s/%s.%s.txt' % (url, name, noat)
+    filename = '%s/www/%s.%s.txt' % (config.basedir, name, noat)
+    urlname = '%s/%s.%s.txt' % (config.baseurl, name, noat)
     return filename, urlname
 
 # Take a db row and convert to a textual presentation
@@ -192,12 +192,12 @@ def db_process(row):
     line = " " + ping_name + lat_hist + lat_time + up_hist + up_time + options + timestamp + "\n"
     return line
 
-def gen_remailer_vitals(name, addy, age, future):
+def gen_remailer_vitals(name, addy):
     vitals = {}
     vitals["rem_name"] = name
     vitals["rem_addy"] = addy
-    vitals["max_age"] = age
-    vitals["max_future"] = future
+    vitals["max_age"] = hours_ago(config.active_age)
+    vitals["max_future"] = hours_ahead(config.active_future)
     # First we get some stats based on all responding pingers
     vitals["rem_latency_avg_all"], \
     vitals["rem_uptime_avg_all"], \
@@ -494,8 +494,6 @@ addy_re = re.compile('\$remailer\{\"([0-9a-z]{1,8})\"\}\s\=\s\"\<(.*)\>\s')
 numeric_re = re.compile('[0-9]{1,5}')
 index_path = '%s/www/%s' % (config.basedir, config.index_file)
 gene_path = '%s/www/%s.html' % (config.basedir, config.gene_report_name)
-age = hours_ago(config.active_age)
-future = hours_ahead(config.active_future)
 
 # Are we running in testmode (without --live)
 testmode = 1
@@ -517,7 +515,7 @@ else:
     logger.debug("Running in testmode, url's will not be retreived")
 
 
-db.gene_find_new(age, utcnow())
+db.gene_find_new(hours_ago(config.active_age), utcnow())
 #gene_write_text(config)
 gene_write_html(gene_path)
 #This function will delete any remailer entries that are over a defined
@@ -531,11 +529,11 @@ index_html.append(index_header(ping_names))
 rotate_color = 0
 for name, addy in db.distinct_rem_names():
     logger.debug("Generating statsistics for remailer %s", name)
-    remailer_vitals = gen_remailer_vitals(name, addy, age, future)
+    remailer_vitals = gen_remailer_vitals(name, addy)
     # We need to append a filename to vitals in order to generate the file
     # within a function.
     remailer_vitals["filename"], \
-    remailer_vitals["urlname"] = remailer_filename(config.basedir, config.baseurl, name, addy)
+    remailer_vitals["urlname"] = remailer_filename(name, addy)
     logger.debug("Writing stats file for %s %s", name, addy)
     write_remailer_stats(remailer_vitals)
     index_html.append(index_remailers(remailer_vitals, rotate_color, ping_names))
