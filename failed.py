@@ -17,11 +17,7 @@
 # for more details.
 
 import logging
-
-from db import distinct_rem_names
-from db import remailer_active_pings
-from db import mark_failed
-from db import mark_recovered
+import db
 
 from stats import gen_remailer_vitals
 
@@ -29,7 +25,7 @@ from timefunc import utcnow
 from timefunc import hours_ago
 from timefunc import hours_ahead
 
-def html(report_name):
+def failed(report_name):
     filename = '/home/crooks/testing/www/%s.html' % report_name
     htmlfile = open(filename,'w')
 
@@ -65,13 +61,13 @@ current stats which means it cannot random hop pings back to the pinger.</i></P>
     max_age = hours_ago(4)
     max_future = hours_ahead(8)
 
-    for name, addy in distinct_rem_names():
+    for name, addy in db.distinct_rem_names():
         criteria = gen_remailer_vitals(name, addy, max_age, max_future)
         logger.debug("Checking remailer %s %s", name, addy)
         addy_noat = addy.replace('@',".")
         full_name = "%s.%s" % (name, addy_noat)
 
-        active_pings = remailer_active_pings(criteria)
+        active_pings = db.remailer_active_pings(criteria)
         if len(active_pings) == 0:
             logger.info("We have no active pings for %s %s", name, addy)
             continue
@@ -82,7 +78,7 @@ current stats which means it cannot random hop pings back to the pinger.</i></P>
         # record the time of failure in the genealogy table.  This has to
         # be a low percentage or bunker would be considered dead.
         if criteria['uptime'] < 2:
-            mark_failed(name, addy, utcnow())
+            db.mark_failed(name, addy, utcnow())
 
         if criteria['uptime'] < 5:
             logger.info("Remailer %s %s is failed.", name, addy)
@@ -100,7 +96,7 @@ current stats which means it cannot random hop pings back to the pinger.</i></P>
             # Stats are greater than 50%, so delete any entries for this
             # remailer from the failed table.
             logger.debug("%s is healthy, deleting any DB entries it might have", name)
-            mark_recovered(name, addy)
+            db.mark_recovered(name, addy)
 
     htmlfile.write('</table>\n')
 
@@ -145,6 +141,6 @@ init_logging()
 logger.info("Processing started at %s", utcnow())
 # Look for remailers in mlist2 that aren't in contacts. If there are any,
 # insert them into contacts.
-html('failed')
+failed('failed')
 logger.info("Processing finished at %s", utcnow())
 
