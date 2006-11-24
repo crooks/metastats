@@ -16,13 +16,10 @@
 # or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
 # for more details.
 
-import psycopg
 import logging
 
 from db import distinct_rem_names
 from db import remailer_active_pings
-from db import remailer_getop
-from db import update_contacts
 from db import mark_failed
 from db import mark_recovered
 
@@ -32,12 +29,8 @@ from timefunc import utcnow
 from timefunc import hours_ago
 from timefunc import hours_ahead
 
-from reports import sendmail_failing
-from reports import sendmail_failed
-from reports import sendmail_update
-
 def html(report_name):
-    filename = '/home/stats/pyprod/www/%s.html' % report_name
+    filename = '/home/crooks/testing/www/%s.html' % report_name
     htmlfile = open(filename,'w')
 
 # Write standard html header section
@@ -103,59 +96,10 @@ current stats which means it cannot random hop pings back to the pinger.</i></P>
             htmlfile.write('<tr bgcolor="%s"><th class="tableleft"><a href="%s.txt" title="%s">%s</a></th>' % (bgcolor, full_name, addy, name))
             htmlfile.write('<td>%d%%</td></tr>\n' % (criteria['uptime'] * 10))
 
-            # Get the operator name and email address from the contacts DB.
-            criteria['op_name'], criteria['op_addy'] = remailer_getop(name, addy)
-            if criteria['op_name'] and criteria['op_addy']:
-                opinfo = True
-            else:
-                opinfo = False
-
-            # If the remailer has a previous last_uptime, it means it is already
-            # treated as failed.  We will not need to insert it into 'failed',
-            # it's already there.
-            uptime, failed = failed_last_uptime(criteria)
-            if uptime and failed:
-                criteria['last_uptime'] = uptime
-                criteria['fail_began'] = failed
-                logger.info("%s was failed during previous run, then %s, now %s", name, criteria['last_uptime'], criteria['uptime'])
-                # If the current stats are worse than the last ones, send an email
-                if criteria['uptime'] < criteria['last_uptime']:
-                    # Has the remailer drooped straight from healthy to zero?
-                    if criteria['uptime'] == 0 and opinfo:
-                        logger.info("%s has flat stats, sending failed email", name)
-                        sendmail_failed(criteria)
-                    # The remailer is unhealthy but not totally failed.
-                    if criteria['uptime'] != 0 and opinfo:
-                        logger.info("%s is dropping in stats, sending update email", name)
-                        sendmail_update(criteria)
-                # Current remailer uptime is the same as last_uptime
-                if criteria['uptime'] == criteria['last_uptime']:
-                    logger.info("%s remains unchanged at %d uptime", name, criteria['uptime'])
-                # Uptime is now higher than last_uptime.  Things have improved.
-                if criteria['uptime'] > criteria['last_uptime']:
-                    logger.info("%s has risen in stats but still isn't healthy.", name)
-                # Last thing within the "Already Failed" section, update the database
-                # by replacing last_uptime with current stats.
-                logger.debug("Updating DB for %s with new last_uptime of %d", criteria['uptime'])
-                failed_update_uptime(criteria)
-
-            # There is no recorded last_uptime for this remailer.  It's a
-            # new failure.  Insert it into the failed table.
-            else:
-                logger.info("%s has no last_level, it's a new failure.", name)
-                failed_insert(criteria)
-                if criteria['uptime'] == 0 and opinfo:
-                    logger.info("%s has dropped from healthy to flat stats.  Sending failed email.", name)
-                    sendmail_failed(criteria)
-                if criteria['uptime'] !=0 and opinfo:
-                    logger.info("%s is a new failure, sending failing email.", name)
-                    sendmail_failing(criteria)
-
         else:
             # Stats are greater than 50%, so delete any entries for this
             # remailer from the failed table.
             logger.debug("%s is healthy, deleting any DB entries it might have", name)
-            failed_delete(criteria)
             mark_recovered(name, addy)
 
     htmlfile.write('</table>\n')
@@ -165,59 +109,12 @@ current stats which means it cannot random hop pings back to the pinger.</i></P>
 
     htmlfile.write('</body></html>')
 
-def failed_last_uptime(criteria):
-    curs.execute("""SELECT last_uptime, fail_began FROM failed WHERE
-                    rem_name = %(rem_name)s AND
-                    rem_addy = %(rem_addy)s""", criteria)
-    result = curs.fetchone()
-    if result:
-        return result[0], result[1]
-    else:
-        return False, False
-
-def failed_update_uptime(criteria):
-    curs.execute("""UPDATE failed SET
-                    last_uptime = %(uptime)i WHERE
-                    rem_name = %(rem_name)s AND
-                    rem_addy = %(rem_addy)s""", criteria)
-    conn.commit()
-
-def failed_insert(criteria):
-    criteria['fail_began'] = utcnow()
-    curs.execute("""INSERT INTO failed
-                        (rem_name, rem_addy, last_uptime, fail_began)
-                    VALUES (
-                        %(rem_name)s,
-                        %(rem_addy)s,
-                        %(uptime)i,
-                        %(fail_began)s)""", criteria)
-    conn.commit()
-
-# The following delete routine removes entries from the failed table when a
-# remailer returns above 50% return on pings.  If a remailer dies forever, it
-# will enter the failed table and then stay there forever.
-# TODO: Do I want the behaviour described above?
-def failed_delete(criteria):
-    curs.execute("""DELETE FROM failed WHERE
-                    rem_name = %(rem_name)s AND
-                    rem_addy = %(rem_addy)s""", criteria)
-    conn.commit()
-
-def get_op_info(name, addy):
-    op_info = remailer_getop(name, addy)
-    if op_info[0] and op_info[1]:
-        logger.debug("We have sufficient operator info to email the %s operator.", name)
-        return op_info[0], op_info[1]
-    else:
-        logger.debug("Insufficient operator info to send email about %s.", name)
-        return False, False
-
 # For a given remailer name, return the average uptime for today from up_hist.
 # In up_hist, a '+' indicates a score of 10.
 def up_today(entries):
     total = 0
     for line in entries:
-        uptime = line[4]
+        uptime = line[5]
         uptime_now = uptime[-1]
         if uptime_now == '+':
             score = 10
@@ -236,7 +133,7 @@ def init_logging():
     level = loglevels['info']
     global logger
     logger = logging.getLogger('failed')
-    hdlr = logging.FileHandler("/home/stats/pyprod/failed.log")
+    hdlr = logging.FileHandler("/home/crooks/failed.log")
     formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
     hdlr.setFormatter(formatter)
     logger.addHandler(hdlr)
@@ -244,16 +141,10 @@ def init_logging():
 
 # ----- Main Routine -----
 
-DSN = 'dbname=remailers user=stats'
-
-conn = psycopg.connect(DSN)
-curs = conn.cursor()
-
 init_logging()
 logger.info("Processing started at %s", utcnow())
 # Look for remailers in mlist2 that aren't in contacts. If there are any,
 # insert them into contacts.
-update_contacts()
 html('failed')
 logger.info("Processing finished at %s", utcnow())
 

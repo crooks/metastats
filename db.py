@@ -197,15 +197,6 @@ def remailer_ignored_pings(conf):
                     ORDER BY up_time DESC, ping_name ASC""", conf)
     return curs.fetchall()
 
-# This routine will attempt to fetch a remailer operator's contact details
-# from the rem_name and rem_addy.  If these are defined, the failed remailers
-# routine will send them an email if the remailer is failing.
-def remailer_getop(name, addy):
-    curs.execute("""SELECT op_name, op_addy FROM contacts WHERE
-                    rem_name = %s AND
-                    rem_addy = %s""", (name, addy))
-    return curs.fetchone()
-
 # Called from failed.py, this routine puts a last_fail timestamp in the
 # genealogy table providing there isn't already one set and last_seen
 # is also unset.  The mark_recovered routine removes the last_fail
