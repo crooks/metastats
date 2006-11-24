@@ -62,25 +62,25 @@ current stats which means it cannot random hop pings back to the pinger.</i></P>
     max_future = hours_ahead(8)
 
     for name, addy in db.distinct_rem_names():
-        criteria = gen_remailer_vitals(name, addy, max_age, max_future)
+        remailer_vitals = gen_remailer_vitals(name, addy, max_age, max_future)
         logger.debug("Checking remailer %s %s", name, addy)
         addy_noat = addy.replace('@',".")
         full_name = "%s.%s" % (name, addy_noat)
 
-        active_pings = db.remailer_active_pings(criteria)
+        active_pings = db.remailer_active_pings(remailer_vitals)
         if len(active_pings) == 0:
             logger.info("We have no active pings for %s %s", name, addy)
             continue
 
-        criteria['uptime'] = up_today(active_pings)
+        remailer_vitals['uptime'] = up_today(active_pings)
 
         # If a remailers uptime is < 20%, then we mark it as failed and
         # record the time of failure in the genealogy table.  This has to
         # be a low percentage or bunker would be considered dead.
-        if criteria['uptime'] < 2:
+        if remailer_vitals['uptime'] < 2:
             db.mark_failed(name, addy, utcnow())
 
-        if criteria['uptime'] < 5:
+        if remailer_vitals['uptime'] < 5:
             logger.info("Remailer %s %s is failed.", name, addy)
             # Rotate background colours for rows
             if rotate_color:
@@ -90,7 +90,7 @@ current stats which means it cannot random hop pings back to the pinger.</i></P>
             rotate_color = not rotate_color
             
             htmlfile.write('<tr bgcolor="%s"><th class="tableleft"><a href="%s.txt" title="%s">%s</a></th>' % (bgcolor, full_name, addy, name))
-            htmlfile.write('<td>%d%%</td></tr>\n' % (criteria['uptime'] * 10))
+            htmlfile.write('<td>%d%%</td></tr>\n' % (remailer_vitals['uptime'] * 10))
 
         else:
             # Stats are greater than 50%, so delete any entries for this
