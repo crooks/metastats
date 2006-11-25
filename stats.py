@@ -192,6 +192,22 @@ def db_process(row):
     line = " " + ping_name + lat_hist + lat_time + up_hist + up_time + options + timestamp + "\n"
     return line
 
+# For a given remailer name, return the average uptime for today from up_hist.
+# In up_hist, a '+' indicates a score of 10.
+def up_today(entries):
+    total = 0
+    for line in entries:
+        uptime = line[5]
+        uptime_now = uptime[-1]
+        if uptime_now == '+':
+            score = 10
+        elif uptime_now == '?':
+            score = 0
+        else:
+            score = int(uptime_now)
+        total += score
+    return int(total / len(entries))
+
 def gen_remailer_vitals(name, addy):
     vitals = {}
     vitals["rem_name"] = name
@@ -530,6 +546,22 @@ rotate_color = 0
 for name, addy in db.distinct_rem_names():
     logger.debug("Generating statsistics for remailer %s", name)
     remailer_vitals = gen_remailer_vitals(name, addy)
+    active_pings = db.remailer_active_pings(remailer_vitals)
+    if len(active_pings) == 0:
+        logger.debug("We have no active pingers for %s", name)
+    else:
+        remailer_vitals['uptime'] = up_today(active_pings)
+        # If a remailers uptime is < 20%, then we mark it as failed and
+        # record the time of failure in the genealogy table.  This has to
+        # be a low percentage or bunker would be considered dead.
+        if remailer_vitals['uptime'] < 2:
+            logger.debug("%s is under 20, flagging it failed", name)
+            db.mark_failed(name, addy, utcnow())
+        # Stats are greater than 50%, so delete any entries for this
+        # remailer from the failed table.
+        if remailer_vitals['uptime'] > 5:
+            logger.debug("%s is healthy, deleting any failed flags it might have", name)
+            db.mark_recovered(name, addy)
     # We need to append a filename to vitals in order to generate the file
     # within a function.
     remailer_vitals["filename"], \
