@@ -208,6 +208,23 @@ def up_today(entries):
         total += score
     return int(total / len(entries))
 
+def fail_recover(name, addy, active_pings):
+    if len(active_pings) == 0:
+        logger.debug("We have no active pingers for %s", name)
+    else:
+        uptime = up_today(active_pings)
+        # If a remailers uptime is < 20%, then we mark it as failed and
+        # record the time of failure in the genealogy table.  This has to
+        # be a low percentage or bunker would be considered dead.
+        if uptime < 2:
+            logger.debug("%s is under 20, flagging it failed", name)
+            db.mark_failed(name, addy, utcnow())
+        # Stats are greater than 50%, so delete any entries for this
+        # remailer from the failed table.
+        if uptime > 5:
+            logger.debug("%s is healthy, deleting any failed flags it might have", name)
+            db.mark_recovered(name, addy)
+
 def gen_remailer_vitals(name, addy):
     vitals = {}
     vitals["rem_name"] = name
@@ -547,21 +564,7 @@ for name, addy in db.distinct_rem_names():
     logger.debug("Generating statsistics for remailer %s", name)
     remailer_vitals = gen_remailer_vitals(name, addy)
     active_pings = db.remailer_active_pings(remailer_vitals)
-    if len(active_pings) == 0:
-        logger.debug("We have no active pingers for %s", name)
-    else:
-        remailer_vitals['uptime'] = up_today(active_pings)
-        # If a remailers uptime is < 20%, then we mark it as failed and
-        # record the time of failure in the genealogy table.  This has to
-        # be a low percentage or bunker would be considered dead.
-        if remailer_vitals['uptime'] < 2:
-            logger.debug("%s is under 20, flagging it failed", name)
-            db.mark_failed(name, addy, utcnow())
-        # Stats are greater than 50%, so delete any entries for this
-        # remailer from the failed table.
-        if remailer_vitals['uptime'] > 5:
-            logger.debug("%s is healthy, deleting any failed flags it might have", name)
-            db.mark_recovered(name, addy)
+    fail_recover(name, addy, active_pings)
     # We need to append a filename to vitals in order to generate the file
     # within a function.
     remailer_vitals["filename"], \
