@@ -48,6 +48,14 @@ active_age = 8
 # How many hours ahead of UTC is considered valid.
 active_future =  2
 
+# When a remailer uptime drops below this level, flag it as dead.
+# Note, this figure is %/10 so 10% = 1.
+deadpoint = 1
+
+# When a remailer uptime climbs beyond this level, remove any dead flags.
+# As with deadpoint, 10% = 1.
+livepoint = 5
+
 # This is the filename used to create a .txt and .html report file
 # for the remailer genealogy section.
 gene_report_name = "genealogy"

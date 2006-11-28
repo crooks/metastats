@@ -72,12 +72,6 @@ current stats which means it cannot random hop pings back to the pinger.</i></P>
 
         remailer_vitals['uptime'] = up_today(active_pings)
 
-        # If a remailers uptime is < 20%, then we mark it as failed and
-        # record the time of failure in the genealogy table.  This has to
-        # be a low percentage or bunker would be considered dead.
-        if remailer_vitals['uptime'] < 2:
-            db.mark_failed(name, addy, utcnow())
-
         if remailer_vitals['uptime'] < 5:
             logger.info("Remailer %s %s is failed.", name, addy)
             # Rotate background colours for rows
@@ -94,7 +88,6 @@ current stats which means it cannot random hop pings back to the pinger.</i></P>
             # Stats are greater than 50%, so delete any entries for this
             # remailer from the failed table.
             logger.debug("%s is healthy, deleting any DB entries it might have", name)
-            db.mark_recovered(name, addy)
 
     htmlfile.write('</table>\n')
 

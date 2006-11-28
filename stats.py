@@ -216,12 +216,12 @@ def fail_recover(name, addy, active_pings):
         # If a remailers uptime is < 20%, then we mark it as failed and
         # record the time of failure in the genealogy table.  This has to
         # be a low percentage or bunker would be considered dead.
-        if uptime < 2:
+        if uptime < config.deadpoint:
             logger.debug("%s is under 20, flagging it failed", name)
             db.mark_failed(name, addy, utcnow())
         # Stats are greater than 50%, so delete any entries for this
         # remailer from the failed table.
-        if uptime > 5:
+        if uptime > config.livepoint:
             logger.debug("%s is healthy, deleting any failed flags it might have", name)
             db.mark_recovered(name, addy)
 
