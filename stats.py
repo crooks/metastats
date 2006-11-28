@@ -217,7 +217,7 @@ def fail_recover(name, addy, active_pings):
         # record the time of failure in the genealogy table.  This has to
         # be a low percentage or bunker would be considered dead.
         if uptime < config.deadpoint:
-            logger.debug("%s is under 20, flagging it failed", name)
+            logger.debug("%s is under %d%%, flagging it failed", name, config.deadpoint * 10)
             db.mark_failed(name, addy, utcnow())
         # Stats are greater than 50%, so delete any entries for this
         # remailer from the failed table.
