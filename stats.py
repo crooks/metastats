@@ -195,7 +195,7 @@ def db_process(row):
 # For a given remailer name, return the average uptime for today from up_hist.
 # In up_hist, a '+' indicates a score of 10.
 def up_today(entries):
-    total = 0
+    total = 0.0
     for line in entries:
         uptime = line[5]
         uptime_now = uptime[-1]
@@ -206,7 +206,7 @@ def up_today(entries):
         else:
             score = int(uptime_now)
         total += score
-    return int(total / len(entries))
+    return total / len(entries)
 
 def fail_recover(name, addy, active_pings):
     if len(active_pings) == 0:
