@@ -500,12 +500,15 @@ addy_re = re.compile('\$remailer\{\"([0-9a-z]{1,8})\"\}\s\=\s\"\<(.*)\>\s')
 numeric_re = re.compile('[0-9]{1,5}')
 index_path = '%s/www/%s' % (config.basedir, config.index_file)
 gene_path = '%s/www/%s.html' % (config.basedir, config.gene_report_name)
+
+# Are we running in testmode?  Testmode implies the script was executed
+# without a --live argument.
 testmode = live_or_test(sys.argv)
 
-ping_names = db.pinger_names()
 # If not in testmode, fetch url's and process them
 if not testmode:                
-    for row in ping_names:
+    pingers = db.pinger_names()
+    for row in pingers:
         url = url_fetch(row[1])
         if url:
             url_process(row[0], url)
@@ -513,24 +516,48 @@ else:
     logger.debug("Running in testmode, url's will not be retreived")
 
 
+# We need to do some periodic housekeeping.  It's not very process
+# intensive so might as well do it every time we run.
 db.housekeeping(hours_ago(672))  # 672Hrs = 28Days
 
-ping_names = db.active_pinger_names()
+# For a pinger to be considered active, it must appear in tables mlist2
+# and pingers.  This basically means, don't create empty pinger columns
+# in the index file.
+active_pingers = db.active_pinger_names()
+
+# Create an empty list to contain each line of html for the index file.
+# Then populate it with header lines.
 index_html = []
-index_html.append(index_header(ping_names))
+index_html.append(index_header(active_pingers))
+
+# A boolean value to rotate row colours within the index 
 rotate_color = 0
+
+# The main loop.  This creates individual remailer text files and
+# indexing data based on database values.
 for name, addy in db.distinct_rem_names():
     logger.debug("Generating statsistics for remailer %s", name)
+
+    # remailer_vitals is a dictionary of standard deviation and average
+    # values for a specific remailer.
     remailer_vitals = gen_remailer_vitals(name, addy)
-    active_pings = db.remailer_active_pings(remailer_vitals)
-    fail_recover(name, addy, active_pings)
+
+    # remailer_active_pings: Based on the vitals generated above, we now
+    # exclude all pings that fall outside standard deviation bounds.
+    remailer_active_pings = db.remailer_active_pings(remailer_vitals)
+
+    # If a remailers is perceived to be dead, timestamp it in the
+    # genealogy table.  Likewise, if it's not dead, unstamp it.
+    fail_recover(name, addy, remailer_active_pings)
+
     # We need to append a filename to vitals in order to generate the file
     # within a function.
     remailer_vitals["filename"], \
     remailer_vitals["urlname"] = remailer_filename(name, addy)
+
     logger.debug("Writing stats file for %s %s", name, addy)
     write_remailer_stats(remailer_vitals)
-    index_html.append(index_remailers(remailer_vitals, rotate_color, ping_names))
+    index_html.append(index_remailers(remailer_vitals, rotate_color, active_pingers))
     rotate_color = not rotate_color
 index_generate(index_html, index_path)
 db.gene_find_new(hours_ago(config.active_age), utcnow())
