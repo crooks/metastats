@@ -516,7 +516,6 @@ else:
 db.gene_find_new(hours_ago(config.active_age), utcnow())
 gene_write_html(gene_path)
 db.housekeeping(hours_ago(672))  # 672Hrs = 28Days
-gene_dup_check(db.gene_dup_count())
 
 ping_names = db.active_pinger_names()
 index_html = []
