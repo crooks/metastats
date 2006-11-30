@@ -286,11 +286,6 @@ def gen_remailer_vitals(name, addy):
         vitals["rem_uptime_stddev"] = 0
     return vitals
 
-def gene_dup_check(dups):
-    for dup in dups:
-        name, addy, count = dup
-        logger.warn("%d genealogy entries for %s %s", count, name, addy)
-
 # This routine will generate a html formated genealogy file.
 def gene_write_html(filename):
     logger.debug("Writing Geneology HTML file %s", filename)

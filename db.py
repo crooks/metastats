@@ -75,13 +75,6 @@ def housekeeping(age):
                     last_fail < cast(%s AS timestamp)""", (age,))
     conn.commit()
 
-# This is a passive routine that counts duplicate entries in genealogy.
-# Duplicates are quite feasible but bad code could make them run wild.
-def gene_dup_count():
-    curs.execute("""SELECT rem_name,rem_addy,count(*) AS Num FROM genealogy
-                    GROUP BY rem_name,rem_addy having ( count(*) > 10)""")
-    return curs.fetchall()
-
 # Count the total number of pingers.  This is extracted from the mlist2 table
 # in order to exclude dead pingers.
 def count_total_pingers():
