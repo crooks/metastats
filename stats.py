@@ -225,6 +225,17 @@ def fail_recover(name, addy, active_pings):
             logger.debug("%s is healthy, deleting any failed flags it might have", name)
             db.mark_recovered(name, addy)
 
+# Are we running in testmode (without --live)
+def live_or_test(mode):
+    if len(mode) > 1:
+        if mode[1].startswith('--'):
+            option = mode[1] [2:]
+            if option == 'live':
+                logger.debug("Running with 'live' flag set, url's will be retreived")
+                return False
+    logger.debug("Running in test mode, urls will not be retreived")
+    return True
+
 def gen_remailer_vitals(name, addy):
     vitals = {}
     vitals["rem_name"] = name
@@ -528,15 +539,8 @@ numeric_re = re.compile('[0-9]{1,5}')
 index_path = '%s/www/%s' % (config.basedir, config.index_file)
 gene_path = '%s/www/%s.html' % (config.basedir, config.gene_report_name)
 
-# Are we running in testmode (without --live)
-testmode = 1
-if len(sys.argv) > 1:
-    if sys.argv[1].startswith('--'):
-        option = sys.argv[1] [2:]
-        if option == 'live':
-                testmode = 0
-                logger.debug("Running with 'live' flag set, url's will be retreived")
-                
+testmode = live_or_test(sys.argv)
+
 ping_names = db.pinger_names()
 # If not in testmode, fetch url's and process them
 if not testmode:                
