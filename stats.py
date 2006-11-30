@@ -513,8 +513,6 @@ else:
     logger.debug("Running in testmode, url's will not be retreived")
 
 
-db.gene_find_new(hours_ago(config.active_age), utcnow())
-gene_write_html(gene_path)
 db.housekeeping(hours_ago(672))  # 672Hrs = 28Days
 
 ping_names = db.active_pinger_names()
@@ -535,5 +533,6 @@ for name, addy in db.distinct_rem_names():
     index_html.append(index_remailers(remailer_vitals, rotate_color, ping_names))
     rotate_color = not rotate_color
 index_generate(index_html, index_path)
-#index.close()
+db.gene_find_new(hours_ago(config.active_age), utcnow())
+gene_write_html(gene_path)
 logger.info("Processing cycle completed at %s (UTC)", utcnow())
