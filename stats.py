@@ -291,39 +291,6 @@ def gene_dup_check(dups):
         name, addy, count = dup
         logger.warn("%d genealogy entries for %s %s", count, name, addy)
 
-def gene_write_text(conf):
-    filename = '%s/www/%s.txt' % (config.basedir, config.gene_report_name)
-    genefile = open(filename,'w')
-    line = "Remailer Geneology as of %s (UTC)\n\n" % utcnow()
-    genefile.write(line)
-
-    # Fetch a list of lists containing the geneology table
-    genealogies = db.gene_get_stats()
-
-    # Find the longest length of a remailer_addy.  We can use this to
-    # format the width of the column in the resulting test file.
-    max_length = 20
-    for genealogy in genealogies:
-        length = len(genealogy[1])
-        if length > max_length:
-            max_length = length
-
-    for genealogy in genealogies:
-        rem_name = genealogy[0].ljust(12)
-        rem_addy = genealogy[1].ljust(max_length)
-        line = rem_name + rem_addy
-        if genealogy[2]:
-            first_seen1 = genealogy[2]
-            first_seen = first_seen1.strftime("%Y-%m-%d")
-            line = line + "  " + first_seen
-        if genealogy[3]:
-            last_seen1 = genealogy[3]
-            last_seen = last_seen1.strftime("%Y-%m-%d")
-            line = line + "  " + last_seen
-        line = line + '\n'
-        genefile.write(line)
-    genefile.close()
-
 # This routine will generate a html formated genealogy file.
 def gene_write_html(filename):
     logger.debug("Writing Geneology HTML file %s", filename)
@@ -538,7 +505,6 @@ addy_re = re.compile('\$remailer\{\"([0-9a-z]{1,8})\"\}\s\=\s\"\<(.*)\>\s')
 numeric_re = re.compile('[0-9]{1,5}')
 index_path = '%s/www/%s' % (config.basedir, config.index_file)
 gene_path = '%s/www/%s.html' % (config.basedir, config.gene_report_name)
-
 testmode = live_or_test(sys.argv)
 
 ping_names = db.pinger_names()
@@ -553,10 +519,7 @@ else:
 
 
 db.gene_find_new(hours_ago(config.active_age), utcnow())
-#gene_write_text(config)
 gene_write_html(gene_path)
-#This function will delete any remailer entries that are over a defined
-#age, (672 hours).
 db.housekeeping(hours_ago(672))  # 672Hrs = 28Days
 gene_dup_check(db.gene_dup_count())
 
