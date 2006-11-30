@@ -543,9 +543,9 @@ for name, addy in db.distinct_rem_names():
     remailer_vitals = gen_remailer_vitals(name, addy)
 
     # remailer_active_pings: Based on the vitals generated above, we now
-    # exclude all pings that fall outside standard deviation bounds.
+    # extract stats lines for pingers considered active.  The up_hist
+    # part is used by the fail_recover routine.
     remailer_active_pings = db.remailer_active_pings(remailer_vitals)
-
     # If a remailers is perceived to be dead, timestamp it in the
     # genealogy table.  Likewise, if it's not dead, unstamp it.
     fail_recover(name, addy, remailer_active_pings)
@@ -555,10 +555,16 @@ for name, addy in db.distinct_rem_names():
     remailer_vitals["filename"], \
     remailer_vitals["urlname"] = remailer_filename(name, addy)
 
+    # Write the remailer text file that contains pinger stats and averages
     logger.debug("Writing stats file for %s %s", name, addy)
     write_remailer_stats(remailer_vitals)
+
+    # Create a single row entry for use in the html index file.
     index_html.append(index_remailers(remailer_vitals, rotate_color, active_pingers))
+
+    # Rotate the colour used in index generation.
     rotate_color = not rotate_color
+
 index_generate(index_html, index_path)
 db.gene_find_new(hours_ago(config.active_age), utcnow())
 gene_write_html(gene_path)
