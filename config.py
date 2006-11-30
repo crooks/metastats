@@ -41,6 +41,9 @@ dbuser = "crooks"
 # Name of index file
 index_file = "index.html"
 
+# The path where the index will be placed
+index_path = '%s/www/%s' % (basedir, index_file)
+
 # Number of hours old a timestamp can be and a pinger
 # entry still considered active.
 active_age = 8
@@ -58,7 +61,10 @@ livepoint = 5
 
 # This is the filename used to create a .txt and .html report file
 # for the remailer genealogy section.
-gene_report_name = "genealogy"
+gene_report_name = "genealogy.html"
+
+# Path to the genealogy report
+gene_path = '%s/www/%s' % (basedir, gene_report_name)
 
 # Socket timeout, used to prevent url retrieval from hanging.
 # Value is the number of seconds to wait for a url to respond.

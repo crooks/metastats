@@ -287,9 +287,9 @@ def gen_remailer_vitals(name, addy):
     return vitals
 
 # This routine will generate a html formated genealogy file.
-def gene_write_html(filename):
-    logger.debug("Writing Geneology HTML file %s", filename)
-    genefile = open(filename,'w')
+def gene_write_html():
+    logger.debug("Writing Geneology HTML file %s", config.gene_path)
+    genefile = open(config.gene_path,'w')
     # Write standard html header section
     genefile.write('<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">\n')
     genefile.write('<html>\n<head>\n')
@@ -418,10 +418,10 @@ def write_remailer_stats(vitals):
 
     statfile.close()
  
-def index_generate(html, filename):
+def index_generate(html):
     """Write an HTML index/summary file.  The bulk of this comes from a list
     created in index_header and index_remailer."""
-    index = open(index_path, 'w')
+    index = open(config.index_path, 'w')
     # Write standard html header section
     index.write('<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">\n')
     index.write('<html>\n<head>\n')
@@ -498,7 +498,6 @@ socket.setdefaulttimeout(config.timeout)
 stat_re = re.compile('([0-9a-z]{1,8})\s+([0-9A-H?]{12}\s.*)')
 addy_re = re.compile('\$remailer\{\"([0-9a-z]{1,8})\"\}\s\=\s\"\<(.*)\>\s')
 numeric_re = re.compile('[0-9]{1,5}')
-index_path = '%s/www/%s' % (config.basedir, config.index_file)
 gene_path = '%s/www/%s.html' % (config.basedir, config.gene_report_name)
 
 # Are we running in testmode?  Testmode implies the script was executed
@@ -565,7 +564,7 @@ for name, addy in db.distinct_rem_names():
     # Rotate the colour used in index generation.
     rotate_color = not rotate_color
 
-index_generate(index_html, index_path)
+index_generate(index_html)
 db.gene_find_new(hours_ago(config.active_age), utcnow())
-gene_write_html(gene_path)
+gene_write_html()
 logger.info("Processing cycle completed at %s (UTC)", utcnow())
