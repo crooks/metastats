@@ -492,79 +492,86 @@ def index_remailers(vitals, rotate_color, ping_names):
     return text
 
 # ----- Start of main routine -----
-init_logging() # Before anything else, initialise logging.
-logger.info("Beginning process cycle at %s (UTC)", utcnow())
-socket.setdefaulttimeout(config.timeout)
-stat_re = re.compile('([0-9a-z]{1,8})\s+([0-9A-H?]{12}\s.*)')
-addy_re = re.compile('\$remailer\{\"([0-9a-z]{1,8})\"\}\s\=\s\"\<(.*)\>\s')
-numeric_re = re.compile('[0-9]{1,5}')
-gene_path = '%s/www/%s.html' % (config.basedir, config.gene_report_name)
+def main():
+    init_logging() # Before anything else, initialise logging.
+    logger.info("Beginning process cycle at %s (UTC)", utcnow())
+    socket.setdefaulttimeout(config.timeout)
+    global stat_re
+    stat_re = re.compile('([0-9a-z]{1,8})\s+([0-9A-H?]{12}\s.*)')
+    global addy_re
+    addy_re = re.compile('\$remailer\{\"([0-9a-z]{1,8})\"\}\s\=\s\"\<(.*)\>\s')
+    global numeric_re
+    numeric_re = re.compile('[0-9]{1,5}')
 
-# Are we running in testmode?  Testmode implies the script was executed
-# without a --live argument.
-testmode = live_or_test(sys.argv)
+    # Are we running in testmode?  Testmode implies the script was executed
+    # without a --live argument.
+    testmode = live_or_test(sys.argv)
 
-# If not in testmode, fetch url's and process them
-if not testmode:                
-    pingers = db.pinger_names()
-    for row in pingers:
-        url = url_fetch(row[1])
-        if url:
-            url_process(row[0], url)
-else:
-    logger.debug("Running in testmode, url's will not be retreived")
+    # If not in testmode, fetch url's and process them
+    if not testmode:                
+        pingers = db.pinger_names()
+        for row in pingers:
+            url = url_fetch(row[1])
+            if url:
+                url_process(row[0], url)
+    else:
+        logger.debug("Running in testmode, url's will not be retreived")
 
 
-# We need to do some periodic housekeeping.  It's not very process
-# intensive so might as well do it every time we run.
-db.housekeeping(hours_ago(672))  # 672Hrs = 28Days
+    # We need to do some periodic housekeeping.  It's not very process
+    # intensive so might as well do it every time we run.
+    db.housekeeping(hours_ago(672))  # 672Hrs = 28Days
 
-# For a pinger to be considered active, it must appear in tables mlist2
-# and pingers.  This basically means, don't create empty pinger columns
-# in the index file.
-active_pingers = db.active_pinger_names()
+    # For a pinger to be considered active, it must appear in tables mlist2
+    # and pingers.  This basically means, don't create empty pinger columns
+    # in the index file.
+    active_pingers = db.active_pinger_names()
 
-# Create an empty list to contain each line of html for the index file.
-# Then populate it with header lines.
-index_html = []
-index_html.append(index_header(active_pingers))
+    # Create an empty list to contain each line of html for the index file.
+    # Then populate it with header lines.
+    index_html = []
+    index_html.append(index_header(active_pingers))
 
-# A boolean value to rotate row colours within the index 
-rotate_color = 0
+    # A boolean value to rotate row colours within the index 
+    rotate_color = 0
 
-# The main loop.  This creates individual remailer text files and
-# indexing data based on database values.
-for name, addy in db.distinct_rem_names():
-    logger.debug("Generating statsistics for remailer %s", name)
+    # The main loop.  This creates individual remailer text files and
+    # indexing data based on database values.
+    for name, addy in db.distinct_rem_names():
+        logger.debug("Generating statsistics for remailer %s", name)
 
-    # remailer_vitals is a dictionary of standard deviation and average
-    # values for a specific remailer.
-    remailer_vitals = gen_remailer_vitals(name, addy)
+        # remailer_vitals is a dictionary of standard deviation and average
+        # values for a specific remailer.
+        remailer_vitals = gen_remailer_vitals(name, addy)
 
-    # remailer_active_pings: Based on the vitals generated above, we now
-    # extract stats lines for pingers considered active.  The up_hist
-    # part is used by the fail_recover routine.
-    remailer_active_pings = db.remailer_active_pings(remailer_vitals)
-    # If a remailers is perceived to be dead, timestamp it in the
-    # genealogy table.  Likewise, if it's not dead, unstamp it.
-    fail_recover(name, addy, remailer_active_pings)
+        # remailer_active_pings: Based on the vitals generated above, we now
+        # extract stats lines for pingers considered active.  The up_hist
+        # part is used by the fail_recover routine.
+        remailer_active_pings = db.remailer_active_pings(remailer_vitals)
+        # If a remailers is perceived to be dead, timestamp it in the
+        # genealogy table.  Likewise, if it's not dead, unstamp it.
+        fail_recover(name, addy, remailer_active_pings)
 
-    # We need to append a filename to vitals in order to generate the file
-    # within a function.
-    remailer_vitals["filename"], \
-    remailer_vitals["urlname"] = remailer_filename(name, addy)
+        # We need to append a filename to vitals in order to generate the file
+        # within a function.
+        remailer_vitals["filename"], \
+        remailer_vitals["urlname"] = remailer_filename(name, addy)
 
-    # Write the remailer text file that contains pinger stats and averages
-    logger.debug("Writing stats file for %s %s", name, addy)
-    write_remailer_stats(remailer_vitals)
+        # Write the remailer text file that contains pinger stats and averages
+        logger.debug("Writing stats file for %s %s", name, addy)
+        write_remailer_stats(remailer_vitals)
 
-    # Create a single row entry for use in the html index file.
-    index_html.append(index_remailers(remailer_vitals, rotate_color, active_pingers))
+        # Create a single row entry for use in the html index file.
+        index_html.append(index_remailers(remailer_vitals, rotate_color, active_pingers))
 
-    # Rotate the colour used in index generation.
-    rotate_color = not rotate_color
+        # Rotate the colour used in index generation.
+        rotate_color = not rotate_color
 
-index_generate(index_html)
-db.gene_find_new(hours_ago(config.active_age), utcnow())
-gene_write_html()
-logger.info("Processing cycle completed at %s (UTC)", utcnow())
+    index_generate(index_html)
+    db.gene_find_new(hours_ago(config.active_age), utcnow())
+    gene_write_html()
+    logger.info("Processing cycle completed at %s (UTC)", utcnow())
+
+# Call main function.
+if (__name__ == "__main__"):
+    main()

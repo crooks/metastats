@@ -16,10 +16,6 @@
 # or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
 # for more details.
 
-# This entry is the default added to the Path header.  If the message
-# doesn't contain a Message-ID, this entry is used for the right side
-# of that too.
-
 # Directory where this program resides
 basedir = "/home/crooks/testing"
 
