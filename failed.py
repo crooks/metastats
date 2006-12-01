@@ -16,6 +16,7 @@
 # or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
 # for more details.
 
+import config
 import logging
 import db
 
@@ -26,12 +27,10 @@ from timefunc import hours_ago
 from timefunc import hours_ahead
 
 def failed(report_name):
-    filename = '/home/crooks/testing/www/%s.html' % report_name
-    htmlfile = open(filename,'w')
+    htmlfile = open(config.failed_path,'w')
 
 # Write standard html header section
-    htmlfile.write('''
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+    htmlfile.write("""<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -44,18 +43,18 @@ def failed(report_name):
 <body>
 <h1>Failing Remailers</h1>
 Remailer stats are normally biased away from the current day.  This is because
-different latencies would skew results due to outstanding pings.  However, the
+different latencies would skew results due to outstanding pings.  However the
 current day does provide a rapid insight into remailers that are currently
 experiencing problems.<br>
 <p>The following table lists remailers that are <u>currently</u> averaging less
-than 50% return on pings. Please consider that this could be due to very high
+than %d%% return on pings. Please consider that this could be due to very high
 latency rather than actual remailer failure.</p>
 <p><i>Note: Bunker is not actually failing.  It's a Middleman remailer with no
 current stats which means it cannot random hop pings back to the pinger.</i></P>
 <table border="0" bgcolor="#000000">
 <tr bgcolor="#F08080">
 <th>Remailer Name</th><th>Ping Responses</th>
-</tr>''')
+</tr>""" % (config.failpoint * 10))
 
     rotate_color = 0
 
@@ -72,7 +71,7 @@ current stats which means it cannot random hop pings back to the pinger.</i></P>
 
         remailer_vitals['uptime'] = up_today(active_pings)
 
-        if remailer_vitals['uptime'] < 5:
+        if remailer_vitals['uptime'] < config.failpoint:
             logger.info("Remailer %s %s is failed.", name, addy)
             # Rotate background colours for rows
             if rotate_color:
@@ -84,15 +83,15 @@ current stats which means it cannot random hop pings back to the pinger.</i></P>
             htmlfile.write('<tr bgcolor="%s"><th class="tableleft"><a href="%s.txt" title="%s">%s</a></th>' % (bgcolor, full_name, addy, name))
             htmlfile.write('<td>%d%%</td></tr>\n' % (remailer_vitals['uptime'] * 10))
 
-        else:
-            # Stats are greater than 50%, so delete any entries for this
-            # remailer from the failed table.
-            logger.debug("%s is healthy, deleting any DB entries it might have", name)
+#        if remailer_vitals('uptime'] > config.goodpoint:
+#            # Stats are greater than 50%, so delete any entries for this
+#            # remailer from the failed table.
+#            logger.debug("%s is healthy, deleting any DB entries it might have", name)
 
     htmlfile.write('</table>\n')
 
     htmlfile.write('<br>Last update: %s (UTC)<br>\n' % utcnow())
-    htmlfile.write('<br><a href="index.html">Return to Index</a>')
+    htmlfile.write('<br><a href="%s">Return to Index</a>' % config.index_file)
 
     htmlfile.write('</body></html>')
 

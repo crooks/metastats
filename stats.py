@@ -374,6 +374,8 @@ def gene_write_html():
         genefile.write('<tr>\n')
     genefile.write('</table>\n')
     genefile.write('<br>Last update: %s (UTC)<br>\n' % utcnow())
+    genefile.write('<br><a href="%s">Index</a>\n' % config.index_file)
+    genefile.write('<br><a href="%s">Failing Remailers</a>\n' % config.failed_report_name)
     genefile.write('</body></html>')
     genefile.close()
 
@@ -437,8 +439,8 @@ def index_generate(html):
 
     index.write('</table>\n')
     index.write('<br>Last update: %s (UTC)<br>\n' % utcnow())
-    index.write('<br><a href="genealogy.html">Remailer Genealogy</a>')
-    index.write('<br><a href="failed.html">Failing Remailers</a>')
+    index.write('<br><a href="%s">Remailer Genealogy</a>' % config.gene_report_name)
+    index.write('<br><a href="%s">Failing Remailers</a>' % config.failed_report_name)
     index.write('<br><a href="blocks.html">Newsgroups Blacklist<a>')
     # Write closing tags and close file
     index.write('</body></html>')

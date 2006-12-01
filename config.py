@@ -55,12 +55,22 @@ deadpoint = 1
 # As with deadpoint, 10% = 1.
 livepoint = 5
 
+# As with above parameters, except this one is the threshold at which a
+# remailer is considered failing.  Not dead, just failing.
+failpoint = 7
+
 # This is the filename used to create a .txt and .html report file
 # for the remailer genealogy section.
 gene_report_name = "genealogy.html"
 
 # Path to the genealogy report
 gene_path = '%s/www/%s' % (basedir, gene_report_name)
+
+# The filename for the failing remailers report.
+failed_report_name = "failed.html"
+
+# The filesystem path to the above report.
+failed_path = '%s/www/%s' % (basedir, failed_report_name)
 
 # Socket timeout, used to prevent url retrieval from hanging.
 # Value is the number of seconds to wait for a url to respond.
