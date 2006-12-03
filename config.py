@@ -47,6 +47,11 @@ active_age = 8
 # How many hours ahead of UTC is considered valid.
 active_future =  2
 
+# How many hours a remailer can be down before it's considered dead.
+# This parameter should be a big number of hours.  For example, 672 hours
+# is 28 days.  Probably the shortest period this should be set to.
+dead_after_hours = 1440
+
 # When a remailer uptime drops below this level, flag it as dead.
 # Note, this figure is %/10 so 10% = 1.
 deadpoint = 1
@@ -57,7 +62,7 @@ livepoint = 5
 
 # As with above parameters, except this one is the threshold at which a
 # remailer is considered failing.  Not dead, just failing.
-failpoint = 7
+failpoint = 6
 
 # This is the filename used to create a .txt and .html report file
 # for the remailer genealogy section.

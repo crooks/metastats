@@ -522,7 +522,7 @@ def main():
 
     # We need to do some periodic housekeeping.  It's not very process
     # intensive so might as well do it every time we run.
-    db.housekeeping(hours_ago(672))  # 672Hrs = 28Days
+    db.housekeeping(hours_ago(config.dead_after_hours))
 
     # For a pinger to be considered active, it must appear in tables mlist2
     # and pingers.  This basically means, don't create empty pinger columns
