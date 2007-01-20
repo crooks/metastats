@@ -172,7 +172,7 @@ def hours_mins(mins):
 def remailer_filename(name, addy):
     noat = addy.replace('@',".")
     filename = '%s/%s.%s.txt' % (config.reportdir, name, noat)
-    urlname = '%s/%s.%s.txt' % (config.baseurl, name, noat)
+    urlname = '%s.%s.txt' % (name, noat)
     return filename, urlname
 
 # Take a db row and convert to a textual presentation
@@ -338,7 +338,7 @@ def gene_write_html():
             genefile.write('<tr bgcolor="%s">' % bgcolor)
             genefile.write('<th class="tableleft">%s</th>\n' % rem_name)
         else:
-            geneurl = '%s/%s.%s.txt' % (config.baseurl, rem_name, rem_addy_noat)
+            geneurl = '%s.%s.txt' % (rem_name, rem_addy_noat)
             genefile.write('<tr bgcolor="%s"><th class="tableleft">' % bgcolor)
             genefile.write('<a href="%s" title="%s">' % (geneurl, rem_addy))
             genefile.write('%s</a></th>\n' % rem_name)
