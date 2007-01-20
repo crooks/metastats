@@ -171,7 +171,7 @@ def hours_mins(mins):
 # Make a filename for each remailer_stats file.
 def remailer_filename(name, addy):
     noat = addy.replace('@',".")
-    filename = '%s/www/%s.%s.txt' % (config.basedir, name, noat)
+    filename = '%s/%s.%s.txt' % (config.reportdir, name, noat)
     urlname = '%s/%s.%s.txt' % (config.baseurl, name, noat)
     return filename, urlname
 
@@ -288,8 +288,9 @@ def gen_remailer_vitals(name, addy):
 
 # This routine will generate a html formated genealogy file.
 def gene_write_html():
-    logger.debug("Writing Geneology HTML file %s", config.gene_path)
-    genefile = open(config.gene_path,'w')
+    logger.debug("Writing Geneology HTML file %s", config.gene_report_name)
+    filename = "%s/%s" % (config.reportdir, config.gene_report_name)
+    genefile = open(filename, 'w')
     # Write standard html header section
     genefile.write('<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">\n')
     genefile.write('<html>\n<head>\n')
@@ -374,7 +375,7 @@ def gene_write_html():
         genefile.write('<tr>\n')
     genefile.write('</table>\n')
     genefile.write('<br>Last update: %s (UTC)<br>\n' % utcnow())
-    genefile.write('<br><a href="%s">Index</a>\n' % config.index_file)
+    genefile.write('<br><a href="index.html">Index</a>\n')
     genefile.write('<br><a href="%s">Failing Remailers</a>\n' % config.failed_report_name)
     genefile.write('</body></html>')
     genefile.close()
@@ -423,7 +424,8 @@ def write_remailer_stats(vitals):
 def index_generate(html):
     """Write an HTML index/summary file.  The bulk of this comes from a list
     created in index_header and index_remailer."""
-    index = open(config.index_path, 'w')
+    filename = "%s/index.html" % config.reportdir
+    index = open(filename, 'w')
     # Write standard html header section
     index.write('<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">\n')
     index.write('<html>\n<head>\n')

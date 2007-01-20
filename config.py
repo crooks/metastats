@@ -16,8 +16,8 @@
 # or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
 # for more details.
 
-# Directory where this program resides
-basedir = "/home/crooks/testing"
+# Directory where report files should be created
+reportdir = "/home/crooks/testing/www"
 
 # Base URL for access to stats
 baseurl = "http://stats.mixmin.org"
@@ -33,12 +33,6 @@ dbname = "metastats"
 
 # Name of the database user account
 dbuser = "crooks"
-
-# Name of index file
-index_file = "index.html"
-
-# The path where the index will be placed
-index_path = '%s/www/%s' % (basedir, index_file)
 
 # Number of hours old a timestamp can be and a pinger
 # entry still considered active.
@@ -68,14 +62,8 @@ failpoint = 6
 # for the remailer genealogy section.
 gene_report_name = "genealogy.html"
 
-# Path to the genealogy report
-gene_path = '%s/www/%s' % (basedir, gene_report_name)
-
 # The filename for the failing remailers report.
 failed_report_name = "failed.html"
-
-# The filesystem path to the above report.
-failed_path = '%s/www/%s' % (basedir, failed_report_name)
 
 # Socket timeout, used to prevent url retrieval from hanging.
 # Value is the number of seconds to wait for a url to respond.

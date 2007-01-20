@@ -27,7 +27,8 @@ from timefunc import hours_ago
 from timefunc import hours_ahead
 
 def failed(report_name):
-    htmlfile = open(config.failed_path,'w')
+    filename = "%s/%s" % (config.reportdir, config.failed_report_name)
+    htmlfile = open(filename, 'w')
 
 # Write standard html header section
     htmlfile.write("""<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
@@ -91,7 +92,7 @@ current stats which means it cannot random hop pings back to the pinger.</i></P>
     htmlfile.write('</table>\n')
 
     htmlfile.write('<br>Last update: %s (UTC)<br>\n' % utcnow())
-    htmlfile.write('<br><a href="%s">Return to Index</a>' % config.index_file)
+    htmlfile.write('<br><a href="index.html">Return to Index</a>')
 
     htmlfile.write('</body></html>')
 
