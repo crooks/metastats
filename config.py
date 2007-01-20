@@ -19,9 +19,6 @@
 # Directory where report files should be created
 reportdir = "/home/crooks/testing/www"
 
-# Base URL for access to stats
-baseurl = "http://stats.mixmin.org"
-
 # Fully qualified logfile name
 logfile = "/home/crooks/metalog"
 
