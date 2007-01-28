@@ -98,8 +98,9 @@ def url_process(pinger_name,pinger):
         # Lets gather some information about chain stats.  If a stats line
         # starts with 'Broken type-II' we'll assume the info we require follows
         # immediately after and continues until we hit a line that does match
-        # a chainstat format.
-        if row.startswith('Broken type-II'):
+        # a chainstat format.  We must find a timestamp to log against each
+        # stat.  Without this, it's future validity cannot be proven.
+        if row.startswith('Broken type-II') and genstamp:
             chain2 = True
             logger.debug("Found header for Broken Type-II chains from pinger %s", pinger_name)
             continue
@@ -108,9 +109,12 @@ def url_process(pinger_name,pinger):
         if chain2:
             is_chain = chain_re.match(row)
             if is_chain:
-                chain_from = is_chain.group(1)
-                chain_to = is_chain.group(2)
-                logger.debug("Processing broken chain from %s to %s", chain_from, chain_to)
+                chain = { 'from': is_chain.group(1),
+                          'to': is_chain.group(2),
+                          'stamp': genstamp,
+                          'pinger': pinger_name }
+                db.chainstat_update(chain)
+                logger.debug("Processing broken chain from %(from)s to %(to)s", chain)
             else:
                 # When we find a line that isn't a chainstat, reset the chain2
                 # flag to indicate we are no longer interested in lines that

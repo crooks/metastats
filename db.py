@@ -271,3 +271,20 @@ def gene_insert_new(remailer):
                         %(new_remailer_addy)s,
                         %(new_remailer_time)s)""", remailer)
     conn.commit()
+
+# First delete any entries from the chainstat2 table where the data matches
+# the new entry.  In theory there can be zero or one entry.  After deleting,
+# reinsert the new entry with an up to date timestamp.
+def chainstat_update(chain):
+    curs.execute("""DELETE FROM chainstat2 WHERE
+                    ping_name = %(pinger)s AND
+                    chain_from = %(from)s AND
+                    chain_to = %(to)s""", chain)
+    curs.execute("""INSERT INTO chainstat2
+                        (ping_name, last_seen, chain_from, chain_to)
+                    VALUES (
+                        %(pinger)s,
+                        %(stamp)s,
+                        %(from)s,
+                        %(to)s)""", chain)
+    conn.commit()
