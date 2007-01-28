@@ -79,6 +79,7 @@ def numeric(seq):
 # Process each line of a pinger url and write results to database
 def url_process(pinger_name,pinger):
     genstamp = 0 # Timestamp extracted from URL
+    chain2 = False # Flag to indicate if we are in the Type2 Chainstats
     address_hash = {}  # Key: Remailer Name, Content: Remailer Address
     stats_hash = {} # Key: Remailer Name, Content: Stats line
 
@@ -93,6 +94,31 @@ def url_process(pinger_name,pinger):
             genstamp = arpa_check(gentime[1])
             logger.debug("Found timestamp %s on stats from %s", genstamp, pinger_name)
             continue
+
+        # Lets gather some information about chain stats.  If a stats line
+        # starts with 'Broken type-II' we'll assume the info we require follows
+        # immediately after and continues until we hit a line that does match
+        # a chainstat format.
+        if row.startswith('Broken type-II'):
+            chain2 = True
+            logger.debug("Found header for Broken Type-II chains from pinger %s", pinger_name)
+            continue
+        # Once chain2 flag is True, we assume each line that looks like a chain
+        # stat entry is a valid chain stat entry.
+        if chain2:
+            is_chain = chain_re.match(row)
+            if is_chain:
+                chain_from = is_chain.group(1)
+                chain_to = is_chain.group(2)
+                logger.debug("Processing broken chain from %s to %s", chain_from, chain_to)
+            else:
+                # When we find a line that isn't a chainstat, reset the chain2
+                # flag to indicate we are no longer interested in lines that
+                # match the regex.
+                chain2 = False
+                logger.debug("Finished processing Broken Type-II chains for %s", pinger_name)
+            continue
+
 
         is_stat = stat_re.match(row)
         if is_stat:
@@ -504,6 +530,8 @@ def main():
     stat_re = re.compile('([0-9a-z]{1,8})\s+([0-9A-H?]{12}\s.*)')
     global addy_re
     addy_re = re.compile('\$remailer\{\"([0-9a-z]{1,8})\"\}\s\=\s\"\<(.*)\>\s')
+    global chain_re
+    chain_re = re.compile('\((\w{1,12})\s(\w{1,12})\)')
     global numeric_re
     numeric_re = re.compile('[0-9]{1,5}')
 
