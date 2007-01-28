@@ -288,3 +288,15 @@ def chainstat_update(chain):
                         %(from)s,
                         %(to)s)""", chain)
     conn.commit()
+
+# Count how many broken From chain entries there are for a given remailer
+def chain_from_count(remailer):
+    curs.execute("""SELECT count(chain_from) FROM chainstat2 WHERE
+                    chain_from = %s""", (remailer,))
+    return curs.fetchone()[0]
+
+# Count how many broken To chain entries there are for a given remailer
+def chain_to_count(remailer):
+    curs.execute("""SELECT count(chain_to) FROM chainstat2 WHERE
+                    chain_to = %s""", (remailer,))
+    return curs.fetchone()[0]

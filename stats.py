@@ -272,6 +272,8 @@ def gen_remailer_vitals(name, addy):
     vitals["rem_addy"] = addy
     vitals["max_age"] = hours_ago(config.active_age)
     vitals["max_future"] = hours_ahead(config.active_future)
+    vitals["chain_from"] = db.chain_from_count(name)
+    vitals["chain_to"] = db.chain_to_count(name)
     # First we get some stats based on all responding pingers
     vitals["rem_latency_avg_all"], \
     vitals["rem_uptime_avg_all"], \
@@ -481,7 +483,7 @@ def index_generate(html):
 def index_header(pingers):
     """Create the header column for the HTML index file"""
     body = ""
-    head = '<tr bgcolor="#F08080"><th></th>\n'
+    head = '<tr bgcolor="#F08080"><th></th><th>Chain From</th><th>Chain To</th>\n'
     for pinger in pingers:
         result = '<th><a href="%s">%s</a></th>\n' % (pinger[1], pinger[0])
         body = body + result
@@ -503,6 +505,12 @@ def index_remailers(vitals, rotate_color, ping_names):
     head = '<tr bgcolor="%(bgcolor)s"><th class="tableleft"> \
 <a href="%(urlname)s" title="%(rem_addy)s"> \
 %(rem_name)s</a></th>\n' % vitals
+    chfr = '<td align="center"> \
+<a href="chfr.%(urlname)s" title="Broken Chains To %(rem_addy)s"> \
+%(chain_from)s</a></td>\n' % vitals
+    chto = '<td align="center"> \
+<a href="chto.%(urlname)s" title="Broken Chains To %(rem_addy)s"> \
+%(chain_to)s</a></td>\n' % vitals
 
     uptimes = db.remailer_index_pings(vitals)
     body = ""
@@ -522,7 +530,7 @@ def index_remailers(vitals, rotate_color, ping_names):
     summary = '<td>%(rem_uptime_avg_all_div10)3.2f</td> \
 <td>%(rem_uptime_stddev_all_div10)3.2f</td> \
 <td>%(rem_count_all)d</td></tr>\n' % vitals
-    text = head + body + summary
+    text = head + chfr + chto + body + summary
     return text
 
 # ----- Start of main routine -----
