@@ -587,6 +587,8 @@ def main():
         # remailer_vitals is a dictionary of standard deviation and average
         # values for a specific remailer.
         remailer_vitals = gen_remailer_vitals(name, addy)
+        chain_from = db.chain_from(remailer_vitals)
+        chain_to = db.chain_to(remailer_vitals)
 
         # remailer_active_pings: Based on the vitals generated above, we now
         # extract stats lines for pingers considered active.  The up_hist

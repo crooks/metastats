@@ -300,3 +300,21 @@ def chain_to_count(remailer):
     curs.execute("""SELECT count(chain_to) FROM chainstat2 WHERE
                     chain_to = %s""", (remailer,))
     return curs.fetchone()[0]
+
+# Return broken Fom chains for a given remailer
+def chain_from(conf):
+    curs.execute("""SELECT ping_name,chain_from,chain_to,last_seen
+                    FROM chainstat2 WHERE
+                    chain_from = %(rem_name)s AND
+                    last_seen >= cast(%(max_age)s AS timestamp) AND
+                    last_seen <= cast(%(max_future)s AS timestamp)""", conf)
+    return curs.fetchall()
+
+# Return broken Fom chains for a given remailer
+def chain_to(conf):
+    curs.execute("""SELECT ping_name,chain_from,chain_to,last_seen
+                    FROM chainstat2 WHERE
+                    chain_to = %(rem_name)s AND
+                    last_seen >= cast(%(max_age)s AS timestamp) AND
+                    last_seen <= cast(%(max_future)s AS timestamp)""", conf)
+    return curs.fetchall()
