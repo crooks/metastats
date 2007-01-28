@@ -202,8 +202,10 @@ def hours_mins(mins):
 def remailer_filename(name, addy):
     noat = addy.replace('@',".")
     filename = '%s/%s.%s.txt' % (config.reportdir, name, noat)
+    filename_chfr = '%s/chfr.%s.%s.txt' % (config.reportdir, name, noat)
+    filename_chto = '%s/chto.%s.%s.txt' % (config.reportdir, name, noat)
     urlname = '%s.%s.txt' % (name, noat)
-    return filename, urlname
+    return filename, filename_chfr, filename_chto, urlname
 
 # Take a db row and convert to a textual presentation
 def db_process(row):
@@ -601,6 +603,8 @@ def main():
         # We need to append a filename to vitals in order to generate the file
         # within a function.
         remailer_vitals["filename"], \
+        remailer_vitals["filename_chfr"], \
+        remailer_vitals["filename_chto"], \
         remailer_vitals["urlname"] = remailer_filename(name, addy)
 
         # Write the remailer text file that contains pinger stats and averages
