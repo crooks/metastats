@@ -290,15 +290,19 @@ def chainstat_update(chain):
     conn.commit()
 
 # Count how many broken From chain entries there are for a given remailer
-def chain_from_count(remailer):
+def chain_from_count(conf):
     curs.execute("""SELECT count(chain_from) FROM chainstat2 WHERE
-                    chain_from = %s""", (remailer,))
+                    chain_from = %(rem_name)s AND
+                    last_seen >= cast(%(max_age)s AS timestamp) AND
+                    last_seen <= cast(%(max_future)s AS timestamp)""", conf)
     return curs.fetchone()[0]
 
 # Count how many broken To chain entries there are for a given remailer
-def chain_to_count(remailer):
+def chain_to_count(conf):
     curs.execute("""SELECT count(chain_to) FROM chainstat2 WHERE
-                    chain_to = %s""", (remailer,))
+                    chain_to = %(rem_name)s AND
+                    last_seen >= cast(%(max_age)s AS timestamp) AND
+                    last_seen <= cast(%(max_future)s AS timestamp)""", conf)
     return curs.fetchone()[0]
 
 # Return broken Fom chains for a given remailer

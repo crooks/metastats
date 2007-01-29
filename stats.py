@@ -274,8 +274,8 @@ def gen_remailer_vitals(name, addy):
     vitals["rem_addy"] = addy
     vitals["max_age"] = hours_ago(config.active_age)
     vitals["max_future"] = hours_ahead(config.active_future)
-    vitals["chain_from"] = db.chain_from_count(name)
-    vitals["chain_to"] = db.chain_to_count(name)
+    vitals["chain_from"] = db.chain_from_count(vitals)
+    vitals["chain_to"] = db.chain_to_count(vitals)
     # First we get some stats based on all responding pingers
     vitals["rem_latency_avg_all"], \
     vitals["rem_uptime_avg_all"], \
@@ -467,6 +467,7 @@ def write_remailer_chain_stats(vitals):
     chain_fr_file.write('Last update: %s (UTC)\n\n' % utcnow())
     chain_to_file.write('Last update: %s (UTC)\n\n' % utcnow())
 
+    # Insert a header row and underline it.
     headers = "Pinger".ljust(24)
     headers = headers + "Chain From".ljust(16)
     headers = headers + "Chain To".ljust(16)
