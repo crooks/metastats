@@ -454,7 +454,50 @@ def write_remailer_stats(vitals):
         statfile.write(entry)
 
     statfile.close()
- 
+
+# Write text files for the remailer chain reports.
+def write_remailer_chain_stats(vitals):
+    # Open the two files for the From and To broken chain files.
+    chain_fr_file = open("%(filename_chfr)s" % vitals, 'w')
+    chain_to_file = open("%(filename_chto)s" % vitals, 'w')
+
+    # Write some headers for the two chainstat reports.
+    chain_fr_file.write("Broken chain statistics from the %(rem_name)s remailer (%(rem_addy)s)\n" % vitals)
+    chain_to_file.write("Broken chain statistics to the %(rem_name)s remailer (%(rem_addy)s)\n" % vitals)
+    chain_fr_file.write('Last update: %s (UTC)\n\n' % utcnow())
+    chain_to_file.write('Last update: %s (UTC)\n\n' % utcnow())
+
+    headers = "Pinger".ljust(24)
+    headers = headers + "Chain From".ljust(16)
+    headers = headers + "Chain To".ljust(16)
+    headers = headers + "Last Reported\n"
+    chain_fr_file.write(headers)
+    chain_to_file.write(headers)
+    headers = "------".ljust(24)
+    headers = headers + "----------".ljust(16)
+    headers = headers + "--------".ljust(16)
+    headers = headers + "-------------\n"
+    chain_fr_file.write(headers)
+    chain_to_file.write(headers)
+
+    for row in db.chain_from(vitals):
+        chain_fr_file.write(chainstat_row_process(row))
+
+    for row in db.chain_to(vitals):
+        chain_to_file.write(chainstat_row_process(row))
+
+    # Close the two chainstat files.
+    chain_fr_file.close()
+    chain_to_file.close()
+
+def chainstat_row_process(entry):
+    ping_name = entry[0].ljust(24)
+    chain_from = entry[1].ljust(16)
+    chain_to = entry[2].ljust(16)
+    stamp1 = entry[3]
+    stamp = stamp1.strftime("%Y-%m-%d %H:%M")
+    return ping_name + chain_from + chain_to + stamp + "\n"
+
 def index_generate(html):
     """Write an HTML index/summary file.  The bulk of this comes from a list
     created in index_header and index_remailer."""
@@ -589,8 +632,6 @@ def main():
         # remailer_vitals is a dictionary of standard deviation and average
         # values for a specific remailer.
         remailer_vitals = gen_remailer_vitals(name, addy)
-        chain_from = db.chain_from(remailer_vitals)
-        chain_to = db.chain_to(remailer_vitals)
 
         # remailer_active_pings: Based on the vitals generated above, we now
         # extract stats lines for pingers considered active.  The up_hist
@@ -610,6 +651,7 @@ def main():
         # Write the remailer text file that contains pinger stats and averages
         logger.debug("Writing stats file for %s %s", name, addy)
         write_remailer_stats(remailer_vitals)
+        write_remailer_chain_stats(remailer_vitals)
 
         # Create a single row entry for use in the html index file.
         index_html.append(index_remailers(remailer_vitals, rotate_color, active_pingers))

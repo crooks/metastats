@@ -307,7 +307,8 @@ def chain_from(conf):
                     FROM chainstat2 WHERE
                     chain_from = %(rem_name)s AND
                     last_seen >= cast(%(max_age)s AS timestamp) AND
-                    last_seen <= cast(%(max_future)s AS timestamp)""", conf)
+                    last_seen <= cast(%(max_future)s AS timestamp)
+                    ORDER BY chain_to, ping_name""", conf)
     return curs.fetchall()
 
 # Return broken Fom chains for a given remailer
@@ -316,5 +317,6 @@ def chain_to(conf):
                     FROM chainstat2 WHERE
                     chain_to = %(rem_name)s AND
                     last_seen >= cast(%(max_age)s AS timestamp) AND
-                    last_seen <= cast(%(max_future)s AS timestamp)""", conf)
+                    last_seen <= cast(%(max_future)s AS timestamp)
+                    ORDER BY chain_from, ping_name""", conf)
     return curs.fetchall()
