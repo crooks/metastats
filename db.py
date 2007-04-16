@@ -75,6 +75,13 @@ def housekeeping(age):
                     last_fail < cast(%s AS timestamp)""", (age,))
     conn.commit()
 
+    #In genealogy once a remailer is dead (last_seen timestamped), it should
+    # no longer have a last_fail timestamp.
+    curs.execute("""UPDATE genealogy SET
+                    last_fail=NULL WHERE
+                    last_seen IS NOT NULL AND
+                    last_fail IS NOT NULL""")
+
 # Count the total number of pingers.  This is extracted from the mlist2 table
 # in order to exclude dead pingers.
 def count_total_pingers():
