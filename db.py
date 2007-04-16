@@ -17,11 +17,11 @@
 # for more details.
 
 import config
-import psycopg2
+import psycopg
 
 DSN = 'dbname=%s user=%s' % (config.dbname, config.dbuser)
 try:
-    conn = psycopg2.connect(DSN)
+    conn = psycopg.connect(DSN)
 except:
     #TODO initialise logging so we don't have printed errors
     print "Failed to connect to database"
