@@ -242,7 +242,8 @@ def up_today(entries):
 
 def fail_recover(name, addy, active_pings):
     if len(active_pings) == 0:
-        logger.debug("We have no active pingers for %s", name)
+        logger.info("We have no active pingers for %s", name)
+        db.mark_failed(name, addy, utcnow())
     else:
         uptime = up_today(active_pings)
         # If a remailers uptime is < 20%, then we mark it as failed and
