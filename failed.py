@@ -26,8 +26,8 @@ from timefunc import utcnow
 from timefunc import hours_ago
 from timefunc import hours_ahead
 
-def failed(report_name):
-    filename = "%s/%s" % (config.reportdir, config.failed_report_name)
+def failed(type):
+    filename = "%s/%s/%s" % (config.reportdir, type, config.failed_report_name)
     htmlfile = open(filename, 'w')
 
 # Write standard html header section
@@ -130,8 +130,6 @@ def init_logging():
 
 init_logging()
 logger.info("Processing started at %s", utcnow())
-# Look for remailers in mlist2 that aren't in contacts. If there are any,
-# insert them into contacts.
-failed('failed')
+failed('mlist2')
 logger.info("Processing finished at %s", utcnow())
 

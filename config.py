@@ -18,7 +18,6 @@
 
 # Directory where report files should be created
 reportdir = "/home/crooks/testing/www"
-type1dir = "/home/crooks/testing/www/type1"
 
 # Fully qualified logfile name
 logfile = "/home/crooks/metalog"
