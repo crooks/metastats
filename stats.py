@@ -79,7 +79,7 @@ def numeric(seq):
 # Process each line of a pinger url and write results to database
 def url_process(pinger_name,pinger):
     genstamp = 0 # Timestamp extracted from URL
-    chain2 = False # Flag to indicate if we are in the Type2 Chainstats
+    chainstat = False # Flag to indicate if we are in the Type2 Chainstats
     address_hash = {}  # Key: Remailer Name, Content: Remailer Address
     stats_hash = {} # Key: Remailer Name, Content: Stats line
 
@@ -101,12 +101,12 @@ def url_process(pinger_name,pinger):
         # a chainstat format.  We must find a timestamp to log against each
         # stat.  Without this, it's future validity cannot be proven.
         if row.startswith('Broken type-II') and genstamp:
-            chain2 = True
+            chainstat = True
             logger.debug("Found header for Broken Type-II chains from pinger %s", pinger_name)
             continue
         # Once chain2 flag is True, we assume each line that looks like a chain
         # stat entry is a valid chain stat entry.
-        if chain2:
+        if chainstat:
             is_chain = chain_re.match(row)
             if is_chain:
                 chain = { 'from': is_chain.group(1),
@@ -119,7 +119,7 @@ def url_process(pinger_name,pinger):
                 # When we find a line that isn't a chainstat, reset the chain2
                 # flag to indicate we are no longer interested in lines that
                 # match the regex.
-                chain2 = False
+                chainstat = False
                 logger.debug("Finished processing Broken Type-II chains for %s", pinger_name)
             continue
 
