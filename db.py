@@ -17,11 +17,11 @@
 # for more details.
 
 import config
-import psycopg2
+import psycopg
 
 DSN = 'dbname=%s user=%s' % (config.dbname, config.dbuser)
 try:
-    conn = psycopg2.connect(DSN)
+    conn = psycopg.connect(DSN)
 except:
     #TODO initialise logging so we don't have printed errors
     print "Failed to connect to database"
@@ -30,7 +30,7 @@ curs = conn.cursor()
 
 # Insert a new entry into the mlist2 table
 def insert(stat_line):
-    curs.execute("""INSERT INTO %(stattype)s
+    curs.execute("""INSERT INTO mlist2 
                         (ping_name, rem_name, rem_addy, lat_hist, lat_time,
                          up_hist, up_time, options, timestamp)
                     VALUES (
@@ -47,20 +47,18 @@ def insert(stat_line):
 
 # Delete entries from mlist2 that match ping_name and rem_name
 def delete(stat_line):
-    curs.execute("""DELETE FROM %(stattype)s WHERE 
-                    ping_name = %(url_ping_name)s AND
-                    rem_name = %(url_rem_name)s AND
-                    rem_addy = %(url_rem_addy)s""", stat_line)
+    curs.execute("""DELETE FROM mlist2 WHERE 
+                        ping_name = %(url_ping_name)s AND
+                        rem_name = %(url_rem_name)s AND
+                        rem_addy = %(url_rem_addy)s""", stat_line)
     conn.commit()
 
 # Called from stats.py to perform various housekeeping tasks.
-def housekeeping(stattype, age):
-    details = { 'stattype' : stattype,
-                'age' : age }
+def housekeeping(age):
     # First delete entries from mlist2 where the timestamp is > age (hours)
     # Age defaults to 28 days but the sky is the limit on this one.
-    curs.execute("""DELETE FROM %(stattype)s WHERE
-                    timestamp < cast(%(age)s AS timestamp)""", details)
+    curs.execute("""DELETE FROM mlist2 WHERE
+                        timestamp < cast(%s AS timestamp)""", (age,))
     
     # Now we've deleted old entries from mlist2, this query will delete
     # entries from pingers that don't exist in mlist2.
@@ -86,8 +84,8 @@ def housekeeping(stattype, age):
 
 # Count the total number of pingers.  This is extracted from the mlist2 table
 # in order to exclude dead pingers.
-def count_total_pingers(stattype):
-    curs.execute("SELECT count(distinct ping_name) FROM %s", (stattype,))
+def count_total_pingers():
+    curs.execute("SELECT count(distinct ping_name) FROM mlist2")
     total = curs.fetchone()
     return total[0]
 
@@ -96,30 +94,30 @@ def count_total_pingers(stattype):
 # defined period of time.
 
 # Return a list of remailer names in mlist2.  Just that.
-def distinct_rem_names(stattype):
-    curs.execute("""SELECT DISTINCT rem_name,rem_addy FROM %s
-                    ORDER BY rem_name""", (stattype,))
+def distinct_rem_names():
+    curs.execute("""SELECT DISTINCT rem_name,rem_addy FROM mlist2
+                    ORDER BY rem_name""")
     return curs.fetchall()
 
 # Return a list of the pinger entries in table pingers.  The check for
 # NULL entries is just to be on the safe side.
-def pinger_names(stattype):
-    curs.execute("""SELECT ping_name,%s FROM pingers
-                    WHERE %s IS NOT NULL
-                    ORDER BY ping_name""", (stattype, stattype))
+def pinger_names():
+    curs.execute("""SELECT ping_name, mlist2 FROM pingers
+                    WHERE mlist2 IS NOT NULL
+                    ORDER BY ping_name""")
     return curs.fetchall()
 
 # Return all the pingers listed in pingers where they also exist in mlist2.
 # This accounts for dead pingers that have no entries at all in mlist2.
-def active_pinger_names(stattype):
-    curs.execute("""SELECT ping_name,%s FROM pingers p WHERE EXISTS
-                    (SELECT ping_name FROM %s m WHERE
-                    m.ping_name = p.ping_name) ORDER BY ping_name""", (stattype, stattype))
+def active_pinger_names():
+    curs.execute("""SELECT ping_name,mlist2 FROM pingers p WHERE EXISTS
+                    (SELECT ping_name FROM mlist2 m WHERE
+                    m.ping_name = p.ping_name) ORDER BY ping_name""")
     return curs.fetchall()
     
 def remailer_avgs_all(conf):
     curs.execute("""SELECT avg(lat_time), avg(up_time), stddev(lat_time),
-                    stddev(up_time), count(*) FROM %(stattype)s WHERE
+                    stddev(up_time), count(*) FROM mlist2 WHERE
                     rem_name = %(rem_name)s AND
                     rem_addy = %(rem_addy)s AND
                     timestamp >= cast(%(max_age)s AS timestamp) AND
@@ -129,9 +127,8 @@ def remailer_avgs_all(conf):
     return curs.fetchone()
 
 def remailer_stats(conf):
-    curs.execute("""SELECT min(lat_time), avg(lat_time), max(lat_time),
-                    stddev(lat_time), min(up_time), avg(up_time), max(up_time),
-                    stddev(up_time), count(*) FROM %(stattype)s WHERE
+    curs.execute("""SELECT min(lat_time), avg(lat_time), max(lat_time), stddev(lat_time),
+                    min(up_time), avg(up_time), max(up_time), stddev(up_time), count(*) FROM mlist2 WHERE
                     rem_name = %(rem_name)s AND
                     rem_addy = %(rem_addy)s AND
                     timestamp >= cast(%(max_age)s AS timestamp) AND
@@ -145,7 +142,7 @@ def remailer_stats(conf):
     return curs.fetchone()
 
 def remailer_index_pings(conf):
-    curs.execute("""SELECT ping_name,up_time/10.0 FROM %(stattype)s
+    curs.execute("""SELECT ping_name,up_time/10.0 FROM mlist2
                     WHERE rem_name = %(rem_name)s AND
                     rem_addy = %(rem_addy)s AND
                     timestamp >= cast(%(max_age)s AS timestamp) AND
@@ -156,7 +153,7 @@ def remailer_index_pings(conf):
 # implies they fall between defined boundaries of uptime and also are less
 # then a defined number of hours old.
 def remailer_active_pings(conf):
-    curs.execute("""SELECT * FROM %(stattype)s WHERE
+    curs.execute("""SELECT * FROM mlist2 WHERE
                     rem_name = %(rem_name)s AND
                     rem_addy = %(rem_addy)s AND
                     timestamp >= cast(%(max_age)s AS timestamp) AND
@@ -174,7 +171,7 @@ def remailer_active_pings(conf):
 # pings that fall outside the boundaries of uptime, although must still
 # comply with not exceeding a defined age in hours.
 def remailer_inactive_pings(conf):
-    curs.execute("""SELECT * FROM %(stattype)s WHERE
+    curs.execute("""SELECT * FROM mlist2 WHERE
                     rem_name = %(rem_name)s AND
                     rem_addy = %(rem_addy)s AND
                     (timestamp > cast(%(max_future)s AS timestamp) OR
@@ -186,7 +183,7 @@ def remailer_inactive_pings(conf):
 # it simply checks to see if pings exceed an acceptable age.  If they do,
 # then they are inactive pings.
 def remailer_ignored_pings(conf):
-    curs.execute("""SELECT * FROM %(stattype)s WHERE
+    curs.execute("""SELECT * FROM mlist2 WHERE
                     rem_name = %(rem_name)s AND
                     rem_addy = %(rem_addy)s AND
                     timestamp >= cast(%(max_age)s AS timestamp) AND
@@ -228,6 +225,17 @@ def mark_recovered(name, addy):
                     rem_addy = %(rem_addy)s""", details)
     conn.commit()
                     
+def update_contacts():
+    curs.execute("""SELECT DISTINCT rem_name,rem_addy FROM mlist2 EXCEPT
+                    (SELECT rem_name,rem_addy FROM contacts)""")
+    data = curs.fetchall()
+    
+    for entry in data:
+        print entry
+        curs.execute("""INSERT INTO contacts (rem_name,rem_addy)
+                        VALUES(%s, %s)""", (entry[0], entry[1]))
+        conn.commit()
+
 # Get a list of all genealogy details for report production.
 def gene_get_stats():
     curs.execute("""SELECT rem_name, rem_addy, first_seen,
