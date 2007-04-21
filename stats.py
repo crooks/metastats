@@ -199,11 +199,11 @@ def hours_mins(mins):
     return hours, minutes
 
 # Make a filename for each remailer_stats file.
-def remailer_filename(name, addy, type):
+def remailer_filename(name, addy):
     noat = addy.replace('@',".")
-    filename = '%s/%s/%s.%s.txt' % (config.reportdir, type, name, noat)
-    filename_chfr = '%s/%s/chfr.%s.%s.txt' % (config.reportdir, type, name, noat)
-    filename_chto = '%s/%s/chto.%s.%s.txt' % (config.reportdir, type, name, noat)
+    filename = '%s/%s.%s.txt' % (config.reportdir, name, noat)
+    filename_chfr = '%s/chfr.%s.%s.txt' % (config.reportdir, name, noat)
+    filename_chto = '%s/chto.%s.%s.txt' % (config.reportdir, name, noat)
     urlname = '%s.%s.txt' % (name, noat)
     return filename, filename_chfr, filename_chto, urlname
 
@@ -322,9 +322,9 @@ def gen_remailer_vitals(name, addy):
     return vitals
 
 # This routine will generate a html formated genealogy file.
-def gene_write_html(type):
+def gene_write_html():
     logger.debug("Writing Geneology HTML file %s", config.gene_report_name)
-    filename = "%s/%s/%s" % (config.reportdir, type, config.gene_report_name)
+    filename = "%s/%s" % (config.reportdir, config.gene_report_name)
     genefile = open(filename, 'w')
     # Write standard html header section
     genefile.write('<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">\n')
@@ -500,10 +500,10 @@ def chainstat_row_process(entry):
     stamp = stamp1.strftime("%Y-%m-%d %H:%M")
     return ping_name + chain_from + chain_to + stamp + "\n"
 
-def index_generate(type, html):
+def index_generate(html):
     """Write an HTML index/summary file.  The bulk of this comes from a list
     created in index_header and index_remailer."""
-    filename = "%s/%s/index.html" % (config.reportdir, type)
+    filename = "%s/index.html" % config.reportdir
     index = open(filename, 'w')
     # Write standard html header section
     index.write('<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">\n')
@@ -598,10 +598,6 @@ def main():
     # without a --live argument.
     testmode = live_or_test(sys.argv)
 
-    # Do we wish to collect type1 or type2 stats?
-    #TODO: This will become a loop in the future
-    stattype = 'mlist2'
-
     # If not in testmode, fetch url's and process them
     if not testmode:                
         pingers = db.pinger_names()
@@ -652,7 +648,7 @@ def main():
         remailer_vitals["filename"], \
         remailer_vitals["filename_chfr"], \
         remailer_vitals["filename_chto"], \
-        remailer_vitals["urlname"] = remailer_filename(name, addy, stattype)
+        remailer_vitals["urlname"] = remailer_filename(name, addy)
 
         # Write the remailer text file that contains pinger stats and averages
         logger.debug("Writing stats file for %s %s", name, addy)
@@ -665,9 +661,9 @@ def main():
         # Rotate the colour used in index generation.
         rotate_color = not rotate_color
 
-    index_generate(stattype, index_html)
+    index_generate(index_html)
     db.gene_find_new(hours_ago(config.active_age), utcnow())
-    gene_write_html(stattype)
+    gene_write_html()
     logger.info("Processing cycle completed at %s (UTC)", utcnow())
 
 # Call main function.
