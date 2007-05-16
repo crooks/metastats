@@ -62,6 +62,9 @@ gene_report_name = "genealogy.html"
 # The filename for the failing remailers report.
 failed_report_name = "failed.html"
 
+# The filename of the uptimes report
+uptime_report_name = "uptimes.html"
+
 # Socket timeout, used to prevent url retrieval from hanging.
 # Value is the number of seconds to wait for a url to respond.
 timeout = 30
