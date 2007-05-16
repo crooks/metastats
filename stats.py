@@ -367,7 +367,7 @@ good.  This means a single pinger can skew the average.</p>
         uptimefile.write('<tr bgcolor="%s">' % bgcolor)
         uptimefile.write('<th class="tableleft">%s</th>' % name)
         uptimefile.write('<td>%3.2f</td>' % up)
-        uptimefile.write('<td>%d:%d</td></tr>\n' % (lathrs, latmin))
+        uptimefile.write('<td>%d:%02d</td></tr>\n' % (lathrs, latmin))
 
     uptimefile.write('</table>\n')
     uptimefile.write('<br>Last update: %s (UTC)<br>\n' % utcnow())
