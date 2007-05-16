@@ -269,12 +269,18 @@ def live_or_test(mode):
     logger.debug("Running in test mode, urls will not be retreived")
     return True
 
-def gen_remailer_vitals(name, addy):
+def gen_global_vitals():
+    global_vitals = {}
+    global_vitals["max_age"] = hours_ago(config.active_age)
+    global_vitals["max_future"] = hours_ahead(config.active_future)
+    return global_vitals
+
+def gen_remailer_vitals(name, addy, global_vitals):
     vitals = {}
     vitals["rem_name"] = name
     vitals["rem_addy"] = addy
-    vitals["max_age"] = hours_ago(config.active_age)
-    vitals["max_future"] = hours_ahead(config.active_future)
+    vitals["max_age"] = global_vitals["max_age"]
+    vitals["max_future"] = global_vitals["max_future"]
     vitals["chain_from"] = db.chain_from_count(vitals)
     vitals["chain_to"] = db.chain_to_count(vitals)
     # First we get some stats based on all responding pingers
@@ -626,6 +632,9 @@ def main():
     # A boolean value to rotate row colours within the index 
     rotate_color = 0
 
+    # Create a dictionary of parameters that are generic to all remailers.
+    global_vitals = gen_global_vitals()
+
     # The main loop.  This creates individual remailer text files and
     # indexing data based on database values.
     for name, addy in db.distinct_rem_names():
@@ -633,7 +642,7 @@ def main():
 
         # remailer_vitals is a dictionary of standard deviation and average
         # values for a specific remailer.
-        remailer_vitals = gen_remailer_vitals(name, addy)
+        remailer_vitals = gen_remailer_vitals(name, addy, global_vitals)
 
         # remailer_active_pings: Based on the vitals generated above, we now
         # extract stats lines for pingers considered active.  The up_hist
