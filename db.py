@@ -333,7 +333,7 @@ def chain_to(conf):
     return curs.fetchall()
 
 def avg_uptime(conf):
-    curs.execute("""SELECT rem_name,avg(up_time)/10
+    curs.execute("""SELECT rem_name,avg(up_time)/10,avg(lat_time)
                     FROM mlist2 WHERE
                     timestamp >= cast(%(max_age)s AS timestamp) AND
                     timestamp <= cast(%(max_future)s AS timestamp)

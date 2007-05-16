@@ -349,7 +349,9 @@ report doesn't define a scope for acceptable ping results; all are considered
 good.  This means a single pinger can skew the average.</p>
 <table border="0" bgcolor="#000000">
 <tr bgcolor="#F08080">
-<th>Remailer Name</th><th>Average Uptime</th></tr>\n""")
+<th>Remailer Name</th>
+<th>Average Uptime</th>
+<th>Average Latency</th></tr>\n""")
     rotate_color = 0
     for uptime in uptimes:
         # Rotate background colours for rows
@@ -360,9 +362,12 @@ good.  This means a single pinger can skew the average.</p>
         rotate_color = not rotate_color
 
         name = uptime[0]
-        time = uptime[1]
+        up = uptime[1]
+        lathrs,latmin = hours_mins(uptime[2])
         uptimefile.write('<tr bgcolor="%s">' % bgcolor)
-        uptimefile.write('<th class="tableleft">%s</th><td>%3.2f</td></tr>\n' % (name, time))
+        uptimefile.write('<th class="tableleft">%s</th>' % name)
+        uptimefile.write('<td>%3.2f</td>' % up)
+        uptimefile.write('<td>%d:%d</td></tr>\n' % (lathrs, latmin))
 
     uptimefile.write('</table>\n')
     uptimefile.write('<br>Last update: %s (UTC)<br>\n' % utcnow())
