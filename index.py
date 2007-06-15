@@ -25,6 +25,7 @@ from db import active_pinger_names
 from db import remailer_active_pings
 from db import remailer_index_pings
 from db import remailer_index_stats
+from db import remailer_index_count
 
 def bg_color(flag):
     """Return alternating background colours depending on the True/False
@@ -137,7 +138,20 @@ def index():
         # Write the average, stddev and count to the end of each index row.
         index.write('<td>%3.2f</td><td>%3.2f</td><td>%d</td>' % (avg, stddev, count))
     index.write('</tr>\n')
-    index.write('</table>\n')
+
+    # Add a row to the bottom of the table showing the count of remailer known
+    # to each pinger.  We have to write a few empty cells to make things line
+    # up because of the chain counts and totals columns.
+    pinger_totals = remailer_index_count(ago, ahead)
+    index.write('<tr bgcolor="#F08080"><th class="tableleft">Count</th><td></td><td></td>\n')
+    for pinger in active_pingers:
+        ping_name = pinger[0]
+        if pinger_totals.has_key(ping_name):
+            index.write('<td title="%s">%s</td>\n' % (ping_name, pinger_totals[ping_name]))
+        else:
+            index.write('<td title="%s">0</td>\n' % (ping_name,))
+    index.write('<td></td><td></td><td></td></tr>\n</table>\n')
+
     index.write('<br>Last update: %s (UTC)<br>\n' % timefunc.utcnow())
     index.write('<br><a href="%s">Remailer Genealogy</a>' % config.gene_report_name)
     index.write('<br><a href="%s">Failing Remailers</a>' % config.failed_report_name)
@@ -149,3 +163,4 @@ def index():
 # Call main function.
 if (__name__ == "__main__"):
     index()
+

@@ -149,6 +149,13 @@ def remailer_index_pings(name, addy, ago, ahead):
                     timestamp <= cast(%s AS timestamp)""", (name, addy, ago, ahead))
     return dict(curs.fetchall())
 
+def remailer_index_count(ago, ahead):
+    curs.execute("""SELECT ping_name,count(rem_name) FROM mlist2 WHERE
+                    timestamp >= cast(%s AS timestamp) AND
+                    timestamp <= cast(%s AS timestamp)
+                    GROUP BY ping_name""", (ago, ahead))
+    return dict(curs.fetchall())
+
 def remailer_index_stats(name, addy, ago, ahead):
     curs.execute("""SELECT avg(up_time)/10.0, stddev(up_time)/10.0, count(up_time)
                     FROM mlist2 WHERE rem_name = %s AND
