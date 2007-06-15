@@ -64,7 +64,7 @@ def index():
     """Generate an HTML index table referencing remailer name against pinger
     name.  The content of the table is remailer uptimes."""
     # Generate an index filename and open it.
-    filename = "%s/index2.html" % config.reportdir
+    filename = "%s/index.html" % config.reportdir
     index = open(filename, 'w')
     # Write the standard HTML headers and the initial BODY parts.
     index.write('''<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">

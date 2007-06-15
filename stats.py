@@ -556,85 +556,6 @@ def chainstat_row_process(entry):
     stamp = stamp1.strftime("%Y-%m-%d %H:%M")
     return ping_name + chain_from + chain_to + stamp + "\n"
 
-def index_generate(html):
-    """Write an HTML index/summary file.  The bulk of this comes from a list
-    created in index_header and index_remailer."""
-    filename = "%s/index.html" % config.reportdir
-    index = open(filename, 'w')
-    # Write standard html header section
-    index.write('<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">\n')
-    index.write('<html>\n<head>\n')
-    index.write('<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">\n')
-    index.write('<meta http-equiv="Content-Style-Type" content="text/css2" />\n')
-    index.write('<meta name="keywords" content="Mixmaster,Echolot,Remailer,Banana,Bananasplit">\n')
-    index.write('<title>Bananasplit Website - Meta Statistics</title>\n')
-    index.write('<link rel="StyleSheet" href="stats.css" type="text/css">\n')
-    index.write('</head>\n\n<body>\n<table border="0" bgcolor="#000000">\n')
-
-    for line in html:
-        index.write(line)
-
-    index.write('</table>\n')
-    index.write('<br>Last update: %s (UTC)<br>\n' % utcnow())
-    index.write('<br><a href="%s">Remailer Genealogy</a>' % config.gene_report_name)
-    index.write('<br><a href="%s">Failing Remailers</a>' % config.failed_report_name)
-    index.write('<br><a href="blocks.html">Newsgroups Blacklist<a>')
-    # Write closing tags and close file
-    index.write('</body></html>')
-    index.close()
-
-def index_header(pingers):
-    """Create the header column for the HTML index file"""
-    body = ""
-    head = '<tr bgcolor="#F08080"><th></th><th>Chain From</th><th>Chain To</th>\n'
-    for pinger in pingers:
-        result = '<th><a href="%s">%s</a></th>\n' % (pinger[1], pinger[0])
-        body = body + result
-    summary = '<th>Average</th><th>StdDev</th><th>Count</th></tr>\n'
-    text = head + body + summary
-    return text
-
-def index_remailers(vitals, rotate_color, ping_names):
-    """Create an HTML line for a given remailer.  This gets used in the stats
-    index file."""
-        # Rotate background colours for rows
-    if rotate_color:
-        vitals["bgcolor"] = "#ADD8E6"
-    else:
-        vitals["bgcolor"] = "#E0FFFF"
-    rotate_color = not rotate_color
-
-    # Write the remailer name and local URL for it
-    head = '<tr bgcolor="%(bgcolor)s"><th class="tableleft"> \
-<a href="%(urlname)s" title="%(rem_addy)s"> \
-%(rem_name)s</a></th>\n' % vitals
-    chfr = '<td align="center"> \
-<a href="chfr.%(urlname)s" title="Broken Chains To %(rem_addy)s"> \
-%(chain_from)s</a></td>\n' % vitals
-    chto = '<td align="center"> \
-<a href="chto.%(urlname)s" title="Broken Chains To %(rem_addy)s"> \
-%(chain_to)s</a></td>\n' % vitals
-
-    uptimes = db.remailer_index_pings(vitals)
-    body = ""
-    # Start of loop to fill row with uptime stats
-    for pinger in ping_names:
-        ping_name = pinger[0]
-        title = "Remailer: %s Pinger: %s" % (vitals["rem_name"], ping_name)
-        if ping_name in uptimes:
-            result = '<td align="center" title="%s">%3.1f</td>\n' % (title, uptimes[ping_name])
-        else:
-            result = '<td title="%s"></td>\n' % title
-        body = body + result
-
-    # Write an average uptime to the end of each remailer row
-    vitals["rem_uptime_avg_all_div10"] = vitals["rem_uptime_avg_all"] / 10
-    vitals["rem_uptime_stddev_all_div10"] = vitals["rem_uptime_stddev_all"] / 10
-    summary = '<td>%(rem_uptime_avg_all_div10)3.2f</td> \
-<td>%(rem_uptime_stddev_all_div10)3.2f</td> \
-<td>%(rem_count_all)d</td></tr>\n' % vitals
-    text = head + chfr + chto + body + summary
-    return text
 
 # ----- Start of main routine -----
 def main():
@@ -674,11 +595,6 @@ def main():
     # in the index file.
     active_pingers = db.active_pinger_names()
 
-    # Create an empty list to contain each line of html for the index file.
-    # Then populate it with header lines.
-    index_html = []
-    index_html.append(index_header(active_pingers))
-
     # A boolean value to rotate row colours within the index 
     rotate_color = 0
 
@@ -714,13 +630,9 @@ def main():
         write_remailer_stats(remailer_vitals)
         write_remailer_chain_stats(remailer_vitals)
 
-        # Create a single row entry for use in the html index file.
-        index_html.append(index_remailers(remailer_vitals, rotate_color, active_pingers))
-
         # Rotate the colour used in index generation.
         rotate_color = not rotate_color
 
-    index_generate(index_html)
     db.gene_find_new(hours_ago(config.active_age), utcnow())
     gene_write_html()
     uptime_write_html(db.avg_uptime(global_vitals))
