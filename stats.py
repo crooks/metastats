@@ -29,6 +29,7 @@ from timefunc import utcnow
 from timefunc import hours_ago
 from timefunc import hours_ahead
 from timefunc import arpa_check
+from index import index
 
 # --- Configuration ends here -----
 
@@ -723,6 +724,7 @@ def main():
     db.gene_find_new(hours_ago(config.active_age), utcnow())
     gene_write_html()
     uptime_write_html(db.avg_uptime(global_vitals))
+    index()
     logger.info("Processing cycle completed at %s (UTC)", utcnow())
 
 # Call main function.

@@ -60,7 +60,7 @@ def keycheck(dictionary, key):
     else:
         return 0
 
-def main():
+def index():
     """Generate an HTML index table referencing remailer name against pinger
     name.  The content of the table is remailer uptimes."""
     # Generate an index filename and open it.
@@ -148,4 +148,4 @@ def main():
 
 # Call main function.
 if (__name__ == "__main__"):
-    main()
+    index()
