@@ -23,7 +23,7 @@ from db import chain_from_count2
 from db import chain_to_count2
 from db import active_pinger_names
 from db import remailer_active_pings
-from db import remailer_index_pings2
+from db import remailer_index_pings
 from db import remailer_index_stats
 
 def bg_color(flag):
@@ -117,7 +117,7 @@ def index():
         index.write('<td align="center">')
         index.write('<a href="chto.%s" title="Broken Chains to %s">' % (url, addy))
         index.write('%s</a></td>\n' % (to_count,))
-        uptimes = remailer_index_pings2(name, addy, ago, ahead)
+        uptimes = remailer_index_pings(name, addy, ago, ahead)
         # Now we need a loop to parse each pinger column within the remailer
         # row
         for pinger in active_pingers:

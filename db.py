@@ -141,15 +141,7 @@ def remailer_stats(conf):
                     lat_time < 5999""", conf)
     return curs.fetchone()
 
-def remailer_index_pings(conf):
-    curs.execute("""SELECT ping_name,up_time/10.0 FROM mlist2
-                    WHERE rem_name = %(rem_name)s AND
-                    rem_addy = %(rem_addy)s AND
-                    timestamp >= cast(%(max_age)s AS timestamp) AND
-                    timestamp <= cast(%(max_future)s AS timestamp)""", conf)
-    return dict(curs.fetchall())
-
-def remailer_index_pings2(name, addy, ago, ahead):
+def remailer_index_pings(name, addy, ago, ahead):
     curs.execute("""SELECT ping_name,up_time/10.0 FROM mlist2
                     WHERE rem_name = %s AND
                     rem_addy = %s AND
@@ -166,17 +158,6 @@ def remailer_index_stats(name, addy, ago, ahead):
                     up_time > 0""",
                     (name, addy, ago, ahead))
     return curs.fetchone()
-
-
-def pinger_index_uptime(conf):
-    """This routine will return a dictionary of average uptimes grouped
-       by pinger name.  This is used in the indexing routine to generate
-       the totals rows."""
-    curs.execute("""SELECT ping_name,avg(uptime) FROM mlist2 WHERE
-                    timestamp >= cast(%(max_age)s AS timestamp) AND
-                    timestamp <= cast(%(max_future)s AS timestamp)
-                    GROUP BY ping_name""", conf)
-    return dict(curs.fetchall())
 
 # This routine collects all the pings that are considered 'Active'.  Active
 # implies they fall between defined boundaries of uptime and also are less
