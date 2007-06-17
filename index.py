@@ -155,6 +155,7 @@ def index():
     index.write('<br>Last update: %s (UTC)<br>\n' % timefunc.utcnow())
     index.write('<br><a href="%s">Remailer Genealogy</a>' % config.gene_report_name)
     index.write('<br><a href="%s">Failing Remailers</a>' % config.failed_report_name)
+    index.write('<br><a href="%s">Uptime Averages</a>' % config.uptime_report_name)
     index.write('<br><a href="blocks.html">Newsgroups Blacklist<a>')
     # Write closing tags and close file
     index.write('</body></html>')
