@@ -202,15 +202,6 @@ def latent_timestamp(mins):
     timestamp = '%d:%02d' % (hours, minutes)
     return timestamp
 
-# Make a filename for each remailer_stats file.
-def remailer_filename(name, addy):
-    noat = addy.replace('@',".")
-    filename = '%s/%s.%s.txt' % (config.reportdir, name, noat)
-    filename_chfr = '%s/chfr.%s.%s.txt' % (config.reportdir, name, noat)
-    filename_chto = '%s/chto.%s.%s.txt' % (config.reportdir, name, noat)
-    urlname = '%s.%s.txt' % (name, noat)
-    return filename, filename_chfr, filename_chto, urlname
-
 # Take a db row and convert to a textual presentation
 def db_process(row):
     ping_name = row[0].ljust(24)
@@ -331,9 +322,11 @@ def gen_remailer_vitals(name, addy, global_vitals):
         vitals["rem_uptime_stddev"] = 0
     return vitals
 
-def write_remailer_stats(vitals):
+def write_remailer_stats(name, addy, vitals):
     # Create a filename for the remailer details, open it and write a title and timestamp.
-    statfile = open("%(filename)s" % vitals, 'w')
+    noat = addy.replace('@',".")
+    filename = '%s/%s.%s.txt' % (config.reportdir, name, noat)
+    statfile = open("%s" % (filename,), 'w')
     statfile.write("Pinger statistics for the %(rem_name)s remailer (%(rem_addy)s)\n" % vitals)
     statfile.write('Last update: %s (UTC)\n' % utcnow())
 
@@ -429,16 +422,9 @@ def main():
         # genealogy table.  Likewise, if it's not dead, unstamp it.
         fail_recover(name, addy, remailer_active_pings)
 
-        # We need to append a filename to vitals in order to generate the file
-        # within a function.
-        remailer_vitals["filename"], \
-        remailer_vitals["filename_chfr"], \
-        remailer_vitals["filename_chto"], \
-        remailer_vitals["urlname"] = remailer_filename(name, addy)
-
         # Write the remailer text file that contains pinger stats and averages
         logger.debug("Writing stats file for %s %s", name, addy)
-        write_remailer_stats(remailer_vitals)
+        write_remailer_stats(name, addy, remailer_vitals)
 
         # Rotate the colour used in index generation.
         rotate_color = not rotate_color
