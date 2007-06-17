@@ -30,6 +30,7 @@ from timefunc import hours_ago
 from timefunc import hours_ahead
 from timefunc import arpa_check
 from index import index
+from genealogy import genealogy
 
 # --- Configuration ends here -----
 
@@ -377,100 +378,6 @@ good.  This means a single pinger can skew the average.</p>
     uptimefile.write('</body></html>')
     uptimefile.close()
 
-# This routine will generate a html formated genealogy file.
-def gene_write_html():
-    logger.debug("Writing Geneology HTML file %s", config.gene_report_name)
-    filename = "%s/%s" % (config.reportdir, config.gene_report_name)
-    genefile = open(filename, 'w')
-    # Write standard html header section
-    genefile.write('<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">\n')
-    genefile.write('<html>\n<head>\n')
-    genefile.write('<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">\n')
-    genefile.write('<meta http-equiv="Content-Style-Type" content="text/css2" />\n')
-    genefile.write('<meta name="keywords" content="Mixmaster,Echolot,Remailer,Banana,Bananasplit">\n')
-    genefile.write('<title>Bananasplit Website - Remailer Genealogy</title>\n')
-    genefile.write('<link rel="StyleSheet" href="stats.css" type="text/css">\n')
-    genefile.write('</head>\n\n<body>\n')
-    genefile.write('<h1>Remailer Genealogy</h1>\n')
-    genefile.write('<table border="0" bgcolor="#000000">\n')
-    genefile.write('<tr bgcolor="#F08080">\n')
-    genefile.write('<th>Remailer Name</th><th>Remailer Address</th>')
-    genefile.write('<th>First Seen Date</th><th>Died On Date</th>')
-    genefile.write('<th>Failed Date</th><th>Comments</th>\n</tr>\n')
-
-    genealogies = db.gene_get_stats()
-
-    rotate_color = 0
-    for genealogy in genealogies:
-        #Set up some friendly names for fields
-        if genealogy[0]: rem_name = genealogy[0]
-        else: logger.error("Genealogy entry with no remailer name")
-        if genealogy[1]:
-            rem_addy = genealogy[1]
-            rem_addy_noat = genealogy[1].replace('@','.')
-        else: logger.error("Genealogy entry with no remailer address")
-        if genealogy[2]: first_seen = genealogy[2].strftime("%Y-%m-%d")
-        else: first_seen = False
-        if genealogy[3]: last_seen = genealogy[3].strftime("%Y-%m-%d")
-        else: last_seen = False
-        if genealogy[4]: last_fail = genealogy[4].strftime("%Y-%m-%d")
-        else: last_fail = False
-        if genealogy[5]: comments = genealogy[5]
-        else: comments = ""
-        
-        # Rotate background colours for rows
-        if rotate_color:
-            bgcolor = "#ADD8E6"
-        else:
-            bgcolor = "#E0FFFF"
-        rotate_color = not rotate_color
-
-        if last_seen:
-            genefile.write('<tr bgcolor="%s">' % bgcolor)
-            genefile.write('<th class="tableleft">%s</th>\n' % rem_name)
-        else:
-            geneurl = '%s.%s.txt' % (rem_name, rem_addy_noat)
-            genefile.write('<tr bgcolor="%s"><th class="tableleft">' % bgcolor)
-            genefile.write('<a href="%s" title="%s">' % (geneurl, rem_addy))
-            genefile.write('%s</a></th>\n' % rem_name)
-
-        # If the remailer address exists, write a table cell for it
-        if rem_addy:
-            genefile.write('<td>%s</td>' % rem_addy)
-        else:
-            genefile.write('<td></td>')
-
-        # If the remailer has a first_seen entry, write a table cell for it
-        if first_seen:
-            genefile.write('<td>%s</td>' % first_seen)
-        else:
-            genefile.write('<td></td>')
-
-        # If thre remailer has a lest_seen entry, write a table cell for it
-        if last_seen:
-            genefile.write('<td>%s</td>' % last_seen)
-        else:
-            genefile.write('<td></td>')
-
-        # If the remailer has a lest_fail entry, write a table cell for it
-        if last_fail:
-            genefile.write('<td>%s</td>' % last_fail)
-        else:
-            genefile.write('<td></td>')
-
-        # If the remailer has a comment, write a table cell for it
-        if comments:
-            genefile.write('<td>%s</td>' % comments)
-        else:
-            genefile.write('<td></td>')
-        genefile.write('<tr>\n')
-    genefile.write('</table>\n')
-    genefile.write('<br>Last update: %s (UTC)<br>\n' % utcnow())
-    genefile.write('<br><a href="index.html">Index</a>\n')
-    genefile.write('<br><a href="%s">Failing Remailers</a>\n' % config.failed_report_name)
-    genefile.write('</body></html>')
-    genefile.close()
-
 def write_remailer_stats(vitals):
     # Create a filename for the remailer details, open it and write a title and timestamp.
     statfile = open("%(filename)s" % vitals, 'w')
@@ -634,9 +541,9 @@ def main():
         rotate_color = not rotate_color
 
     db.gene_find_new(hours_ago(config.active_age), utcnow())
-    gene_write_html()
     uptime_write_html(db.avg_uptime(global_vitals))
     index()
+    genealogy()
     logger.info("Processing cycle completed at %s (UTC)", utcnow())
 
 # Call main function.
