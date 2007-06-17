@@ -35,6 +35,12 @@ def hours_ahead(future_hours):
     timestamp = thentime.strftime("%Y-%m-%d %H:%M:%S")
     return timestamp
 
+# This function will convert minutes into hours and minutes
+def hours_mins(mins):
+    hours = int(mins / 60)
+    minutes = int(mins % 60)
+    return hours, minutes
+
 # This function will convert an ARPA format timestamp into a standard one in
 # the UTC timezone.
 def arpa_check(datestr):

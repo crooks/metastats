@@ -363,11 +363,11 @@ def chain_to(conf):
                     ORDER BY chain_from, ping_name""", conf)
     return curs.fetchall()
 
-def avg_uptime(conf):
+def avg_uptime(ago, ahead):
     curs.execute("""SELECT rem_name,avg(up_time)/10,avg(lat_time)
                     FROM mlist2 WHERE
-                    timestamp >= cast(%(max_age)s AS timestamp) AND
-                    timestamp <= cast(%(max_future)s AS timestamp)
+                    timestamp >= cast(%s AS timestamp) AND
+                    timestamp <= cast(%s AS timestamp)
                     GROUP BY rem_name
-                    ORDER BY avg(up_time) DESC""", conf)
+                    ORDER BY avg(up_time) DESC""", (ago, ahead))
     return curs.fetchall()
