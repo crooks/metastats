@@ -48,7 +48,8 @@ good.  This means a single pinger can skew the average.</p>
 <tr bgcolor="#F08080">
 <th>Remailer Name</th>
 <th>Average Uptime</th>
-<th>Average Latency</th></tr>\n""")
+<th>Average Latency</th>
+<th>Pingers Reporting</th></tr>\n""")
     rotate_color = 0
     for uptime in uptimes:
         # Rotate background colours for rows
@@ -60,16 +61,17 @@ good.  This means a single pinger can skew the average.</p>
 
         name = uptime[0]
         up = uptime[1]
+        count = uptime[3]
         lathrs,latmin = timefunc.hours_mins(uptime[2])
         uptimefile.write('<tr bgcolor="%s">' % bgcolor)
         uptimefile.write('<th class="tableleft">%s</th>' % name)
         uptimefile.write('<td>%3.2f</td>' % up)
-        uptimefile.write('<td>%d:%02d</td></tr>\n' % (lathrs, latmin))
+        uptimefile.write('<td>%d:%02d</td>' % (lathrs, latmin))
+        uptimefile.write('<td>%d</td></tr>\n' % (count, ))
 
     uptimefile.write('</table>\n')
     uptimefile.write('<br>Last update: %s (UTC)<br>\n' % timefunc.utcnow())
     uptimefile.write('<br><a href="index.html">Index</a>\n')
-    uptimefile.write('<br><a href="%s">Failing Remailers</a>\n' % config.failed_report_name)
     uptimefile.write('</body></html>')
     uptimefile.close()
 

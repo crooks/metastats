@@ -364,8 +364,8 @@ def chain_to(conf):
     return curs.fetchall()
 
 def avg_uptime(ago, ahead):
-    curs.execute("""SELECT rem_name,avg(up_time)/10,avg(lat_time)
-                    FROM mlist2 WHERE
+    curs.execute("""SELECT rem_name,avg(up_time)/10,avg(lat_time),
+                    count(ping_name) FROM mlist2 WHERE
                     timestamp >= cast(%s AS timestamp) AND
                     timestamp <= cast(%s AS timestamp)
                     GROUP BY rem_name
