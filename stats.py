@@ -33,6 +33,7 @@ from timefunc import arpa_check
 from index import index
 from genealogy import genealogy
 from uptimes import uptimes
+from chainstats import chainstats
 
 # --- Configuration ends here -----
 
@@ -371,51 +372,6 @@ def write_remailer_stats(vitals):
 
     statfile.close()
 
-# Write text files for the remailer chain reports.
-def write_remailer_chain_stats(vitals):
-    # Open the two files for the From and To broken chain files.
-    chain_fr_file = open("%(filename_chfr)s" % vitals, 'w')
-    chain_to_file = open("%(filename_chto)s" % vitals, 'w')
-
-    # Write some headers for the two chainstat reports.
-    chain_fr_file.write("Broken chain statistics from the %(rem_name)s remailer (%(rem_addy)s)\n" % vitals)
-    chain_to_file.write("Broken chain statistics to the %(rem_name)s remailer (%(rem_addy)s)\n" % vitals)
-    chain_fr_file.write('Last update: %s (UTC)\n\n' % utcnow())
-    chain_to_file.write('Last update: %s (UTC)\n\n' % utcnow())
-
-    # Insert a header row and underline it.
-    headers = "Pinger".ljust(24)
-    headers = headers + "Chain From".ljust(16)
-    headers = headers + "Chain To".ljust(16)
-    headers = headers + "Last Reported\n"
-    chain_fr_file.write(headers)
-    chain_to_file.write(headers)
-    headers = "------".ljust(24)
-    headers = headers + "----------".ljust(16)
-    headers = headers + "--------".ljust(16)
-    headers = headers + "-------------\n"
-    chain_fr_file.write(headers)
-    chain_to_file.write(headers)
-
-    for row in db.chain_from(vitals):
-        chain_fr_file.write(chainstat_row_process(row))
-
-    for row in db.chain_to(vitals):
-        chain_to_file.write(chainstat_row_process(row))
-
-    # Close the two chainstat files.
-    chain_fr_file.close()
-    chain_to_file.close()
-
-def chainstat_row_process(entry):
-    ping_name = entry[0].ljust(24)
-    chain_from = entry[1].ljust(16)
-    chain_to = entry[2].ljust(16)
-    stamp1 = entry[3]
-    stamp = stamp1.strftime("%Y-%m-%d %H:%M")
-    return ping_name + chain_from + chain_to + stamp + "\n"
-
-
 # ----- Start of main routine -----
 def main():
     init_logging() # Before anything else, initialise logging.
@@ -425,8 +381,6 @@ def main():
     stat_re = re.compile('([0-9a-z]{1,8})\s+([0-9A-H?]{12}\s.*)')
     global addy_re
     addy_re = re.compile('\$remailer\{\"([0-9a-z]{1,8})\"\}\s\=\s\"\<(.*)\>\s')
-    global chain_re
-    chain_re = re.compile('\((\w{1,12})\s(\w{1,12})\)')
 
     # Are we running in testmode?  Testmode implies the script was executed
     # without a --live argument.
@@ -485,7 +439,6 @@ def main():
         # Write the remailer text file that contains pinger stats and averages
         logger.debug("Writing stats file for %s %s", name, addy)
         write_remailer_stats(remailer_vitals)
-        write_remailer_chain_stats(remailer_vitals)
 
         # Rotate the colour used in index generation.
         rotate_color = not rotate_color
@@ -494,6 +447,7 @@ def main():
     index()
     genealogy()
     uptimes()
+    chainstats()
     logger.info("Processing cycle completed at %s (UTC)", utcnow())
 
 # Call main function.

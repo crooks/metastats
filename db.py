@@ -344,23 +344,23 @@ def chain_to_count2(ago, ahead):
     return dict(curs.fetchall())
 
 # Return broken Fom chains for a given remailer
-def chain_from(conf):
+def chain_from(name, ago, ahead):
     curs.execute("""SELECT ping_name,chain_from,chain_to,last_seen
                     FROM chainstat2 WHERE
-                    chain_from = %(rem_name)s AND
-                    last_seen >= cast(%(max_age)s AS timestamp) AND
-                    last_seen <= cast(%(max_future)s AS timestamp)
-                    ORDER BY chain_to, ping_name""", conf)
+                    chain_from = %s AND
+                    last_seen >= cast(%s AS timestamp) AND
+                    last_seen <= cast(%s AS timestamp)
+                    ORDER BY chain_to, ping_name""", (name, ago, ahead))
     return curs.fetchall()
 
 # Return broken Fom chains for a given remailer
-def chain_to(conf):
+def chain_to(name, ago, ahead):
     curs.execute("""SELECT ping_name,chain_from,chain_to,last_seen
                     FROM chainstat2 WHERE
-                    chain_to = %(rem_name)s AND
-                    last_seen >= cast(%(max_age)s AS timestamp) AND
-                    last_seen <= cast(%(max_future)s AS timestamp)
-                    ORDER BY chain_from, ping_name""", conf)
+                    chain_to = %s AND
+                    last_seen >= cast(%s AS timestamp) AND
+                    last_seen <= cast(%s AS timestamp)
+                    ORDER BY chain_from, ping_name""", (name, ago, ahead))
     return curs.fetchall()
 
 def avg_uptime(ago, ahead):
