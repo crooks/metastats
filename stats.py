@@ -75,10 +75,15 @@ def url_fetch(url):
 # Do some string to integer conversion
 def numeric(seq):
     seq = seq.strip() # Get rid of spaces
-    if numeric_re.match(seq): # Regex to check for digits 0-9
-        seq = int(seq)
-        return seq
-    return 0
+    if len(seq) == 0:
+        seq = 0
+    else:
+        try:
+            seq = int(seq)
+        except ValueError:
+            seq = 0
+            logger.warn("Expected a numeric, got %s", seq)
+    return seq
 
 # Process each line of a pinger url and write results to database
 def url_process(pinger_name,pinger):
@@ -422,8 +427,6 @@ def main():
     addy_re = re.compile('\$remailer\{\"([0-9a-z]{1,8})\"\}\s\=\s\"\<(.*)\>\s')
     global chain_re
     chain_re = re.compile('\((\w{1,12})\s(\w{1,12})\)')
-    global numeric_re
-    numeric_re = re.compile('[0-9]{1,5}')
 
     # Are we running in testmode?  Testmode implies the script was executed
     # without a --live argument.
