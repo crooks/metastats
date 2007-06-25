@@ -371,3 +371,19 @@ def avg_uptime(ago, ahead):
                     GROUP BY rem_name
                     ORDER BY avg(up_time) DESC""", (ago, ahead))
     return curs.fetchall()
+
+def keyrings():
+    curs.execute("""SELECT ping_name,pubring FROM pingers WHERE
+                    pubring IS NOT NULL""")
+    return curs.fetchall()
+
+def insert_key(ping_name, rem_name, rem_addy, rem_key):
+    conf = {'ping_name' : ping_name,
+            'rem_name' : rem_name,
+            'rem_addy' : rem_addy,
+            'rem_key' : rem_key }
+    curs.execute("""UPDATE mlist2 SET key = %(rem_key)s WHERE
+                    rem_name = %(rem_name)s AND
+                    rem_addy = %(rem_addy)s AND
+                    ping_name = %(ping_name)s""", conf)
+    conn.commit()
