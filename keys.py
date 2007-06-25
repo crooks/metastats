@@ -21,8 +21,10 @@ import re
 import sys
 
 import config
+import timefunc
 from db import keyrings
 from db import insert_key
+from db import count_active_pingers
 
 # Fetch stats url from a pinger
 def url_fetch(url):
@@ -54,11 +56,18 @@ def pubring_process(ping_name, content):
 def main():
     global pubring_re
     pubring_re = re.compile('([0-9a-z]{1,8})\s+(\S+@\S+)\s+([0-9a-z]+)\s')
+    global now, ago, ahead
+    now = timefunc.utcnow()
+    ago = timefunc.hours_ago(config.active_age)
+    ahead = timefunc.hours_ahead(config.active_future)
+
     for url in keyrings():
         ping_name = url[0]
         pubring = url[1]
         content = url_fetch(pubring)
         pubring_process(ping_name, content)
+    count = count_active_pingers(ago, ahead)
+    print count
 
 # Call main function.
 if (__name__ == "__main__"):

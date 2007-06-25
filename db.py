@@ -89,6 +89,18 @@ def count_total_pingers():
     total = curs.fetchone()
     return total[0]
 
+def count_active_pingers(ago, ahead):
+    """Count how many times each remailer name occurs in mlist2.
+    This gives us a count of how many pingers return a result for
+    each remailer.  We use this routine to check keys, so we're
+    only interested in results where keys are not null."""
+    curs.execute("""SELECT rem_name,count(rem_name) FROM mlist2 WHERE
+                  timestamp > cast(%s AS timestamp) AND
+                  timestamp < cast(%s AS timestamp) AND
+                  key IS NOT NULL
+                  GROUP BY rem_name""", (ago, ahead))
+    return dict(curs.fetchall())
+
 # Count pingers that are conisdered active for a given remailer.  Active in
 # this context means they have shown a ping for that remailer within a
 # defined period of time.
