@@ -374,6 +374,8 @@ def main():
     stat_re = re.compile('([0-9a-z]{1,8})\s+([0-9A-H?]{12}\s.*)')
     global addy_re
     addy_re = re.compile('\$remailer\{\"([0-9a-z]{1,8})\"\}\s\=\s\"\<(.*)\>\s')
+    global chain_re
+    chain_re = re.compile('\((\w{1,12})\s(\w{1,12})\)')
 
     # Are we running in testmode?  Testmode implies the script was executed
     # without a --live argument.
