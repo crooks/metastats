@@ -396,17 +396,18 @@ def count_active_keys(ago, ahead):
     curs.execute("""SELECT rem_name,rem_addy,count(rem_name)
                     FROM mlist2 WHERE
                     timestamp > cast(%s AS timestamp) AND
-                    timestamp < cast(%s AS timestamp) AND
-                    key IS NOT NULL
-                    GROUP BY rem_name,rem_addy""", (ago, ahead))
+                    timestamp < cast(%s AS timestamp)
+                    GROUP BY rem_name,rem_addy
+                    ORDER BY rem_name,rem_addy""", (ago, ahead))
     return curs.fetchall()
+   
 
 def count_unique_keys(name, addy, ago, ahead):
     """Like count_active_keys, except this routine counts how many unique
     keys there are for each remailer name.  In a perfect would, this routine
     would return 1 for each remailer.  This would indicate that all pingers
     were reporting the same key."""
-    curs.execute("""SELECT count(distinct key)
+    curs.execute("""SELECT count(key),count(distinct key)
                     FROM mlist2 WHERE
                     rem_name=%s AND
                     rem_addy=%s AND

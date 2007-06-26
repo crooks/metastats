@@ -64,18 +64,54 @@ def filenames(name, addy):
 def write_remailer_stats(filename, name, addy):
     stats = open(filename, 'w')
     stats.write('Keystats for the %s Remailer (%s).\n\n' % (name, addy))
-    stats.write('Unique keys reported: %s\n\n' % 
-                count_unique_keys(name, addy, ago, ahead))
     for ping_name, key in remailer_keys(name, addy, ago, ahead):
         stats.write('%-20s %s\n' % (ping_name, key))
     stats.close()
 
 def write_stats():
     indexname = "%s/%s" % (config.reportdir, config.keyindex)
+    index = open(indexname, 'w')
+    index.write('''<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<meta http-equiv="Content-Style-Type" content="text/css2" />
+<meta name="keywords" content="Mixmaster,Echolot,Remailer,Banana,Bananasplit">
+<title>Bananasplit Website - Meta Statistics</title>
+<link rel="StyleSheet" href="stats.css" type="text/css">
+</head>
+<body>
+<table border="0" bgcolor="#000000">
+<tr bgcolor="#F08080"><th>Remailer</th><th>Address</th><th>Pingers Reporting</th>
+<th>Pingers with Keys</th><th>Unique Keys</th></tr>\n''')
+    colorflag = False
     for rem_name, rem_addy, count in count_active_keys(ago, ahead):
         url, filename = filenames(rem_name, rem_addy)
+        # We need the Try/Except here as a return of None cannot be unpacked.
+        # None occurs when no pingers have a valid return.  Eg. Dead remailer.
+        try:
+            count_keys,distinct_keys = count_unique_keys(rem_name, rem_addy, ago, ahead)
+        except TypeError:
+            count_keys = 0
+            distinct_keys = 0
         write_remailer_stats(filename, rem_name, rem_addy)
 
+        if colorflag: bgcolor = "#ADD8E6"
+        else: bgcolor = "#E0FFFF"
+        colorflag = not colorflag
+
+        index.write('<tr bgcolor="%s"><th class="tableleft">' % (bgcolor,))
+        if distinct_keys > 0:
+            index.write('<a href="%s">%s</a>' % (url, rem_name))
+        else:
+            index.write('%s' % (rem_name,))
+        index.write('</th><td>%s</td>' % (rem_addy,))
+        index.write('<td>%s</td>' % (count,))
+        index.write('<td>%s</td><td>%s</td>' % (count_keys, distinct_keys))
+        index.write('</tr>\n')
+
+    index.write('</table>\n</body>\n</html>\n')
+    index.close()
 
 def main():
     global pubring_re
