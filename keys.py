@@ -74,6 +74,7 @@ def write_remailer_stats(filename, name, addy):
 
     for ping_name, key, version in remailer_keys(name, addy, ago, ahead):
         stats.write('%-12s%-35s%-20s\n' % (ping_name, key, version))
+    stats.write('\nLast Updated: %s (UTC)' % now)
     stats.close()
 
 def write_stats():
@@ -128,26 +129,29 @@ not exceptional.  Any more then 2 is plain wrong and demands investigation.</p>
             index.write('<td>%s</td>' % (distinct_keys,))
         index.write('</tr>\n')
 
-    index.write('</table>\n</body>\n</html>\n')
+    index.write('</table><br>\n')
+    index.write('Last Updated: %s (UTC)\n' % now)
+    index.write('</body>\n</html>\n')
     index.close()
 
-def main():
+def getkeystats():
     global pubring_re
     pubring_re = re.compile('([0-9a-z]{1,8})\s+(\S+@\S+)\s+([0-9a-z]+)\s+(\S+)\s+')
+    for url in keyrings():
+        ping_name = url[0]
+        pubring = url[1]
+        content = url_fetch(pubring)
+        pubring_process(ping_name, content)
+
+def writekeystats():
     global now, ago, ahead
     now = timefunc.utcnow()
     ago = timefunc.hours_ago(config.active_age)
     ahead = timefunc.hours_ahead(config.active_future)
-
-#    for url in keyrings():
-#        ping_name = url[0]
-#        pubring = url[1]
-#        content = url_fetch(pubring)
-#        pubring_process(ping_name, content)
-    
     write_stats()
 
 
 # Call main function.
 if (__name__ == "__main__"):
-    main()
+#    getkeystats()
+    writekeystats()
