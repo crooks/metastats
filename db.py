@@ -425,7 +425,6 @@ def remailer_keys(name, addy, ago, ahead):
     curs.execute("""SELECT ping_name,key,version FROM mlist2 WHERE
                     rem_name=%s AND
                     rem_addy=%s AND
-                    key IS NOT NULL AND
                     timestamp > cast(%s AS timestamp) AND
                     timestamp < cast(%s AS timestamp)
                     ORDER BY ping_name""", (name, addy, ago, ahead))
