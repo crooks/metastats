@@ -25,6 +25,9 @@ logfile = "/home/crooks/metalog"
 # Loglevel, can be debug, info, warn or error
 loglevel = "debug"
 
+# Keyindex is the filename within reportdir for keystats
+keyindex = "keystat"
+
 # Name of the metastats database
 dbname = "metastats"
 

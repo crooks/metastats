@@ -24,7 +24,9 @@ import config
 import timefunc
 from db import keyrings
 from db import insert_key
-from db import count_active_pingers
+from db import count_active_keys
+from db import count_unique_keys
+from db import remailer_keys
 
 # Fetch stats url from a pinger
 def url_fetch(url):
@@ -53,6 +55,28 @@ def pubring_process(ping_name, content):
             rem_key = is_pubring.group(3)
             insert_key(ping_name, rem_name, rem_addy, rem_key)
 
+def filenames(name, addy):
+    noat = addy.replace('@',".")
+    file = '%s/key.%s.%s.txt' % (config.reportdir, name, noat)
+    url = 'key.%s.%s.txt' % (name, noat)
+    return url, file
+
+def write_remailer_stats(filename, name, addy):
+    stats = open(filename, 'w')
+    stats.write('Keystats for the %s Remailer (%s).\n\n' % (name, addy))
+    stats.write('Unique keys reported: %s\n\n' % 
+                count_unique_keys(name, addy, ago, ahead))
+    for ping_name, key in remailer_keys(name, addy, ago, ahead):
+        stats.write('%-20s %s\n' % (ping_name, key))
+    stats.close()
+
+def write_stats():
+    indexname = "%s/%s" % (config.reportdir, config.keyindex)
+    for rem_name, rem_addy, count in count_active_keys(ago, ahead):
+        url, filename = filenames(rem_name, rem_addy)
+        write_remailer_stats(filename, rem_name, rem_addy)
+
+
 def main():
     global pubring_re
     pubring_re = re.compile('([0-9a-z]{1,8})\s+(\S+@\S+)\s+([0-9a-z]+)\s')
@@ -61,13 +85,14 @@ def main():
     ago = timefunc.hours_ago(config.active_age)
     ahead = timefunc.hours_ahead(config.active_future)
 
-    for url in keyrings():
-        ping_name = url[0]
-        pubring = url[1]
-        content = url_fetch(pubring)
-        pubring_process(ping_name, content)
-    count = count_active_pingers(ago, ahead)
-    print count
+#    for url in keyrings():
+#        ping_name = url[0]
+#        pubring = url[1]
+#        content = url_fetch(pubring)
+#        pubring_process(ping_name, content)
+    
+    write_stats()
+
 
 # Call main function.
 if (__name__ == "__main__"):
