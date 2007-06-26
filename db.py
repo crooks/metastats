@@ -377,13 +377,16 @@ def keyrings():
                     pubring IS NOT NULL""")
     return curs.fetchall()
 
-def insert_key(ping_name, rem_name, rem_addy, rem_key):
+def insert_key(ping_name, rem_name, rem_addy, rem_key, rem_version):
     conf = {'ping_name' : ping_name,
             'rem_name' : rem_name,
             'rem_addy' : rem_addy,
-            'rem_key' : rem_key }
-    curs.execute("""UPDATE mlist2 SET key = %(rem_key)s WHERE
-                    rem_name = %(rem_name)s AND
+            'rem_key' : rem_key,
+            'rem_version' : rem_version }
+    curs.execute("""UPDATE mlist2 SET
+                    key = %(rem_key)s,
+                    version = %(rem_version)s
+                    WHERE rem_name = %(rem_name)s AND
                     rem_addy = %(rem_addy)s AND
                     ping_name = %(ping_name)s""", conf)
     conn.commit()
@@ -419,7 +422,7 @@ def count_unique_keys(name, addy, ago, ahead):
 
 def remailer_keys(name, addy, ago, ahead):
     """Return all the ping_names and keys reported for a single remailer."""
-    curs.execute("""SELECT ping_name,key FROM mlist2 WHERE
+    curs.execute("""SELECT ping_name,key,version FROM mlist2 WHERE
                     rem_name=%s AND
                     rem_addy=%s AND
                     key IS NOT NULL AND

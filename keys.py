@@ -53,7 +53,8 @@ def pubring_process(ping_name, content):
             rem_name = is_pubring.group(1)
             rem_addy = is_pubring.group(2)
             rem_key = is_pubring.group(3)
-            insert_key(ping_name, rem_name, rem_addy, rem_key)
+            rem_version = is_pubring.group(4)
+            insert_key(ping_name, rem_name, rem_addy, rem_key, rem_version)
 
 def filenames(name, addy):
     noat = addy.replace('@',".")
@@ -64,8 +65,8 @@ def filenames(name, addy):
 def write_remailer_stats(filename, name, addy):
     stats = open(filename, 'w')
     stats.write('Keystats for the %s Remailer (%s).\n\n' % (name, addy))
-    for ping_name, key in remailer_keys(name, addy, ago, ahead):
-        stats.write('%-20s %s\n' % (ping_name, key))
+    for ping_name, key, version in remailer_keys(name, addy, ago, ahead):
+        stats.write('%-12s %-35s %-20s\n' % (ping_name, key, version))
     stats.close()
 
 def write_stats():
@@ -122,7 +123,7 @@ not exceptional.  Any more then 2 is plain wrong and demands investigation.</p>
 
 def main():
     global pubring_re
-    pubring_re = re.compile('([0-9a-z]{1,8})\s+(\S+@\S+)\s+([0-9a-z]+)\s')
+    pubring_re = re.compile('([0-9a-z]{1,8})\s+(\S+@\S+)\s+([0-9a-z]+)\s+(\S+)\s+')
     global now, ago, ahead
     now = timefunc.utcnow()
     ago = timefunc.hours_ago(config.active_age)
