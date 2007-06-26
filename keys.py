@@ -64,9 +64,16 @@ def filenames(name, addy):
 
 def write_remailer_stats(filename, name, addy):
     stats = open(filename, 'w')
-    stats.write('Keystats for the %s Remailer (%s).\n\n' % (name, addy))
+    stats.write('Keystats for the %s remailer (%s).\n\n' % (name, addy))
+    stats.write('Pinger'.ljust(12))
+    stats.write('Remailer Key'.ljust(35))
+    stats.write('Version'.ljust(20) + '\n')
+    stats.write('------'.ljust(12))
+    stats.write('------------'.ljust(35))
+    stats.write('-------'.ljust(20) + '\n')
+
     for ping_name, key, version in remailer_keys(name, addy, ago, ahead):
-        stats.write('%-12s %-35s %-20s\n' % (ping_name, key, version))
+        stats.write('%-12s%-35s%-20s\n' % (ping_name, key, version))
     stats.close()
 
 def write_stats():
@@ -114,8 +121,11 @@ not exceptional.  Any more then 2 is plain wrong and demands investigation.</p>
         else:
             index.write('%s' % (rem_name,))
         index.write('</th><td>%s</td>' % (rem_addy,))
-        index.write('<td>%s</td>' % (count,))
-        index.write('<td>%s</td><td>%s</td>' % (count_keys, distinct_keys))
+        index.write('<td>%s</td><td>%s</td>' % (count, count_keys))
+        if distinct_keys > 1:
+            index.write('<td bgcolor="#FF0000">%s</td>' % (distinct_keys,))
+        else:
+            index.write('<td>%s</td>' % (distinct_keys,))
         index.write('</tr>\n')
 
     index.write('</table>\n</body>\n</html>\n')
