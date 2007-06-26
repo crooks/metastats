@@ -81,6 +81,13 @@ def write_stats():
 <link rel="StyleSheet" href="stats.css" type="text/css">
 </head>
 <body>
+<h1>Remailer Keystats Report</h1>
+<p>This report provides stats on remailer keys held by each pinger.
+In normal circumstances every pinger should provide a key, but exceptions
+may occur if a pinger doesn't return a pubring.mix, or we haven't defined
+what the url for the file is on a given pinger.  Unique Keys should be 1,
+but during key expiration, some pingers will update before others, so 2 is
+not exceptional.  Any more then 2 is plain wrong and demands investigation.</p>
 <table border="0" bgcolor="#000000">
 <tr bgcolor="#F08080"><th>Remailer</th><th>Address</th><th>Pingers Reporting</th>
 <th>Pingers with Keys</th><th>Unique Keys</th></tr>\n''')
