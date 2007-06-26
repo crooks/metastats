@@ -34,6 +34,8 @@ from index import index
 from genealogy import genealogy
 from uptimes import uptimes
 from chainstats import chainstats
+from keys import getkeystats
+from keys import writekeystats
 
 # --- Configuration ends here -----
 
@@ -388,6 +390,8 @@ def main():
             url = url_fetch(row[1])
             if url:
                 url_process(row[0], url)
+        # Fetch pubring.mix files and write them to the DB
+        getkeystats()
     else:
         logger.debug("Running in testmode, url's will not be retreived")
 
@@ -436,6 +440,7 @@ def main():
     genealogy()
     uptimes()
     chainstats()
+    writekeystats()
     logger.info("Processing cycle completed at %s (UTC)", utcnow())
 
 # Call main function.

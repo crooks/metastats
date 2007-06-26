@@ -1,3 +1,4 @@
+w
 #!/usr/bin/python
 #
 # vim: tabstop=4 expandtab shiftwidth=4 autoindent
@@ -141,7 +142,8 @@ def getkeystats():
         ping_name = url[0]
         pubring = url[1]
         content = url_fetch(pubring)
-        pubring_process(ping_name, content)
+        if content:
+            pubring_process(ping_name, content)
 
 def writekeystats():
     global now, ago, ahead
@@ -153,5 +155,5 @@ def writekeystats():
 
 # Call main function.
 if (__name__ == "__main__"):
-#    getkeystats()
+    getkeystats()
     writekeystats()
