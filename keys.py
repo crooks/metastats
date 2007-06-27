@@ -66,30 +66,44 @@ def pubring_process(ping_name, content):
 
 def filenames(name, addy):
     noat = addy.replace('@',".")
-    file = '%s/key.%s.%s.txt' % (config.reportdir, name, noat)
-    url = 'key.%s.%s.txt' % (name, noat)
+    file = '%s/key.%s.%s.html' % (config.reportdir, name, noat)
+    url = 'key.%s.%s.html' % (name, noat)
     return url, file
 
 def write_remailer_stats(filename, name, addy):
-    stats = open(filename, 'w')
-    stats.write('Keystats for the %s remailer (%s).\n\n' % (name, addy))
-    stats.write('Pinger'.ljust(12))
-    stats.write('Remailer Key'.ljust(35))
-    stats.write('Version'.ljust(20))
-    stats.write('Valid'.ljust(12))
-    stats.write('Expire\n')
-    stats.write('------'.ljust(12))
-    stats.write('------------'.ljust(35))
-    stats.write('-------'.ljust(20))
-    stats.write('-----'.ljust(12))
-    stats.write('------\n')
-
+    stat = open(filename, 'w')
+    stat.write('''<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<meta http-equiv="Content-Style-Type" content="text/css2" />
+<meta name="keywords" content="Mixmaster,Echolot,Remailer,Banana,Bananasplit">
+<title>Bananasplit Website - Meta Statistics</title>
+<link rel="StyleSheet" href="stats.css" type="text/css">
+</head>
+<body>''')
+    stat.write('<h1>Keystats Report for the %s remailer</h1>\n' % (name,))
+    stat.write('<h2>%s</h2>' % (addy,))
+    stat.write('<table border="0" bgcolor="#000000">')
+    stat.write('<tr bgcolor="#F08080"><th>Pinger</th>')
+    stat.write('<th>Remailer Key</th><th>Version</th>')
+    stat.write('<th>Valid</th><th>Expire</th></tr>\n''')
+    colorflag = False
     for ping_name, key, version, valid, expire in \
         remailer_keys(name, addy, ago, ahead):
-        stats.write('%-12s%-35s%-20s' % (ping_name, key, version))
-        stats.write('%-12s%-12s\n' % (valid, expire))
-    stats.write('\nLast Updated: %s (UTC)' % now)
-    stats.close()
+
+        if colorflag: bgcolor = "#ADD8E6"
+        else: bgcolor = "#E0FFFF"
+        colorflag = not colorflag
+
+        stat.write('<tr bgcolor=%s>' % (bgcolor,))
+        stat.write('<th class="tableleft">%s</th>\n' % (ping_name,))
+        stat.write('<td>%s</td><td>%s</td>\n' % (key, version))
+        stat.write('<td>%s</td><td>%s</td></tr>\n' % (valid, expire))
+    stat.write('</table>\n')
+    stat.write('<br>Last Updated: %s (UTC)\n' % now)
+    stat.write('</body></html>')
+    stat.close()
 
 def write_stats():
     indexname = "%s/%s" % (config.reportdir, config.keyindex)
@@ -177,5 +191,5 @@ def writekeystats():
 
 # Call main function.
 if (__name__ == "__main__"):
-    getkeystats()
+    #getkeystats()
     writekeystats()
