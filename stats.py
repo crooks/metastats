@@ -25,11 +25,7 @@ import sys
 
 import config
 import db
-from timefunc import utcnow
-from timefunc import hours_ago
-from timefunc import hours_ahead
-from timefunc import hours_mins
-from timefunc import arpa_check
+import timefunc
 from index import index
 from genealogy import genealogy
 from uptimes import uptimes
@@ -103,7 +99,7 @@ def url_process(pinger_name,pinger):
     for row in pinger:
         if row.startswith('Generated: ') and not genstamp:
             gentime = row.split('ted: ')
-            genstamp = arpa_check(gentime[1])
+            genstamp = timefunc.arpa_check(gentime[1])
             logger.debug("Found timestamp %s on stats from %s", genstamp, pinger_name)
             continue
 
@@ -240,7 +236,7 @@ def up_today(entries):
 def fail_recover(name, addy, active_pings):
     if len(active_pings) == 0:
         logger.info("We have no active pingers for %s", name)
-        db.mark_failed(name, addy, utcnow())
+        db.mark_failed(name, addy, timefunc.utcnow())
     else:
         uptime = up_today(active_pings)
         # If a remailers uptime is < 20%, then we mark it as failed and
@@ -248,7 +244,7 @@ def fail_recover(name, addy, active_pings):
         # be a low percentage or bunker would be considered dead.
         if uptime < config.deadpoint:
             logger.debug("%s is under %d%%, flagging it failed", name, config.deadpoint * 10)
-            db.mark_failed(name, addy, utcnow())
+            db.mark_failed(name, addy, timefunc.utcnow())
         # Stats are greater than 50%, so delete any entries for this
         # remailer from the failed table.
         if uptime > config.livepoint:
@@ -266,18 +262,12 @@ def live_or_test(mode):
     logger.debug("Running in test mode, urls will not be retreived")
     return True
 
-def gen_global_vitals():
-    global_vitals = {}
-    global_vitals["max_age"] = hours_ago(config.active_age)
-    global_vitals["max_future"] = hours_ahead(config.active_future)
-    return global_vitals
-
-def gen_remailer_vitals(name, addy, global_vitals):
+def gen_remailer_vitals(name, addy):
     vitals = {}
     vitals["rem_name"] = name
     vitals["rem_addy"] = addy
-    vitals["max_age"] = global_vitals["max_age"]
-    vitals["max_future"] = global_vitals["max_future"]
+    vitals["max_age"] = ago
+    vitals["max_future"] = ahead
     vitals["chain_from"] = db.chain_from_count(vitals)
     vitals["chain_to"] = db.chain_to_count(vitals)
     # First we get some stats based on all responding pingers
@@ -330,7 +320,7 @@ def write_remailer_stats(name, addy, vitals):
     filename = '%s/%s.%s.txt' % (config.reportdir, name, noat)
     statfile = open("%s" % (filename,), 'w')
     statfile.write("Pinger statistics for the %(rem_name)s remailer (%(rem_addy)s)\n" % vitals)
-    statfile.write('Last update: %s (UTC)\n' % utcnow())
+    statfile.write('Last update: %s (UTC)\n' % timefunc.utcnow())
 
     statfile.write("\nPingers\n")
     statfile.write(" Known:\t%d\t" % db.count_total_pingers())
@@ -342,10 +332,10 @@ def write_remailer_stats(name, addy, vitals):
     statfile.write(" Highest:\t%3.2f%%\t\t" % (vitals["rem_uptime_max"]/10.00))
     statfile.write("StdDev:\t%3.2f%%\n" % (float(vitals["rem_uptime_stddev"])/10.00))
     statfile.write("\nLatency\n")
-    statfile.write(" Lowest:\t%d:%02d\t\t" % hours_mins(vitals["rem_latency_min"]))
-    statfile.write("Average:\t%d:%02d\n" % hours_mins(vitals["rem_latency_avg"]))
-    statfile.write(" Highest:\t%d:%02d\t\t" % hours_mins(vitals["rem_latency_max"]))
-    statfile.write("StdDev:\t%d:%02d\n" % hours_mins(vitals["rem_latency_stddev"]))
+    statfile.write(" Lowest:\t%d:%02d\t\t" % timefunc.hours_mins(vitals["rem_latency_min"]))
+    statfile.write("Average:\t%d:%02d\n" % timefunc.hours_mins(vitals["rem_latency_avg"]))
+    statfile.write(" Highest:\t%d:%02d\t\t" % timefunc.hours_mins(vitals["rem_latency_max"]))
+    statfile.write("StdDev:\t%d:%02d\n" % timefunc.hours_mins(vitals["rem_latency_stddev"]))
 
     line = "\nActive Pings\n"
     statfile.write(line)
@@ -370,14 +360,16 @@ def write_remailer_stats(name, addy, vitals):
 # ----- Start of main routine -----
 def main():
     init_logging() # Before anything else, initialise logging.
-    logger.info("Beginning process cycle at %s (UTC)", utcnow())
+    logger.info("Beginning process cycle at %s (UTC)", timefunc.utcnow())
     socket.setdefaulttimeout(config.timeout)
-    global stat_re
+    global stat_re, addy_re, chain_re
     stat_re = re.compile('([0-9a-z]{1,8})\s+([0-9A-H?]{12}\s.*)')
-    global addy_re
     addy_re = re.compile('\$remailer\{\"([0-9a-z]{1,8})\"\}\s\=\s\"\<(.*)\>\s')
-    global chain_re
     chain_re = re.compile('\((\w{1,12})\s(\w{1,12})\)')
+    global now, ago, ahead
+    now = timefunc.utcnow()
+    ago = timefunc.hours_ago(config.active_age)
+    ahead = timefunc.hours_ahead(config.active_future)
 
     # Are we running in testmode?  Testmode implies the script was executed
     # without a --live argument.
@@ -398,7 +390,7 @@ def main():
 
     # We need to do some periodic housekeeping.  It's not very process
     # intensive so might as well do it every time we run.
-    db.housekeeping(hours_ago(config.dead_after_hours))
+    db.housekeeping(timefunc.hours_ago(config.dead_after_hours))
 
     # For a pinger to be considered active, it must appear in tables mlist2
     # and pingers.  This basically means, don't create empty pinger columns
@@ -408,9 +400,6 @@ def main():
     # A boolean value to rotate row colours within the index 
     rotate_color = 0
 
-    # Create a dictionary of parameters that are generic to all remailers.
-    global_vitals = gen_global_vitals()
-
     # The main loop.  This creates individual remailer text files and
     # indexing data based on database values.
     for name, addy in db.distinct_rem_names():
@@ -418,7 +407,7 @@ def main():
 
         # remailer_vitals is a dictionary of standard deviation and average
         # values for a specific remailer.
-        remailer_vitals = gen_remailer_vitals(name, addy, global_vitals)
+        remailer_vitals = gen_remailer_vitals(name, addy)
 
         # remailer_active_pings: Based on the vitals generated above, we now
         # extract stats lines for pingers considered active.  The up_hist
@@ -435,13 +424,13 @@ def main():
         # Rotate the colour used in index generation.
         rotate_color = not rotate_color
 
-    db.gene_find_new(hours_ago(config.active_age), utcnow())
+    db.gene_find_new()
     index()
     genealogy()
     uptimes()
     chainstats()
     writekeystats()
-    logger.info("Processing cycle completed at %s (UTC)", utcnow())
+    logger.info("Processing cycle completed at %s (UTC)", timefunc.utcnow())
 
 # Call main function.
 if (__name__ == "__main__"):

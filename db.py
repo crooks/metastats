@@ -269,14 +269,14 @@ def gene_get_stats():
 # the current time.  Entries in genealogy table are excluded if the already
 # have a last_seen address.  This accounts for remailers returning with the
 # same name and address.
-def gene_find_new(age, now):
+def gene_find_new():
     curs.execute("""SELECT rem_name,rem_addy FROM mlist2 WHERE
                     rem_name IS NOT NULL AND
                     rem_addy IS NOT NULL AND
                     timestamp > cast(%s AS timestamp) AND
                     up_hist !~ '^[0?]{12}$' EXCEPT
                     (SELECT rem_name,rem_addy FROM genealogy WHERE
-                    last_seen IS NULL)""", (age,))
+                    last_seen IS NULL)""", (ago,))
     new_remailers = curs.fetchall()
     #TODO Non database functionality shouldn't be in here
     for new_remailer in new_remailers:
