@@ -19,6 +19,7 @@
 import urllib2
 import re
 import sys
+import socket
 
 import config
 import timefunc
@@ -37,7 +38,6 @@ def url_fetch(url):
     except:
         failed = 1
     if failed:
-        logger.info("Retrieval of %s failed", url)
         return 0
     else:
         try:
@@ -122,7 +122,11 @@ not exceptional.  Any more then 2 is plain wrong and demands investigation.</p>
         else:
             index.write('%s' % (rem_name,))
         index.write('</th><td>%s</td>' % (rem_addy,))
-        index.write('<td>%s</td><td>%s</td>' % (count, count_keys))
+        index.write('<td>%s</td>' % (count, ))
+        if count == count_keys:
+            index.write('<td>%s</td>' % (count_keys,))
+        else:
+            index.write('<td bgcolor="#FF0000">%s</td>' % (count_keys, ))
         if distinct_keys > 1:
             index.write('<td bgcolor="#FF0000">%s</td>' % (distinct_keys,))
         else:
@@ -137,6 +141,7 @@ not exceptional.  Any more then 2 is plain wrong and demands investigation.</p>
 def getkeystats():
     global pubring_re
     pubring_re = re.compile('([0-9a-z]{1,8})\s+(\S+@\S+)\s+([0-9a-z]+)\s+(\S+)\s+')
+    socket.setdefaulttimeout(config.timeout)
     for url in keyrings():
         ping_name = url[0]
         pubring = url[1]
