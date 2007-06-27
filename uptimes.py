@@ -24,7 +24,7 @@ from db import avg_uptime
 def uptimes():
     ago = timefunc.hours_ago(config.active_age)
     ahead = timefunc.hours_ahead(config.active_future)
-    uptimes = avg_uptime(ago, ahead)
+    uptimes = avg_uptime()
     #logger.debug("Writing Uptime HTML file %s", config.uptime_report_name)
     filename = "%s/%s" % (config.reportdir, config.uptime_report_name)
     uptimefile = open(filename, 'w')

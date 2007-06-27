@@ -17,7 +17,7 @@
 # for more details.
 
 import config
-import timefunc
+from timefunc import utcnow
 from db import distinct_rem_names
 from db import chain_from_count2
 from db import chain_to_count2
@@ -44,14 +44,6 @@ def gen_filename(name, addy):
     file_chto = '%s/chto.%s.%s.txt' % (config.reportdir, name, noat)
     url = '%s.%s.txt' % (name, noat)
     return file, file_chfr, file_chto, url
-
-def timevars():
-    """Timevars are utcnow, allowable age and allowable future times for
-    each remailer stats file gathered."""
-    now = timefunc.utcnow()
-    ago = timefunc.hours_ago(config.active_age)
-    ahead = timefunc.hours_ahead(config.active_future)
-    return now, ago, ahead
 
 def keycheck(dictionary, key):
     """This function returns 0 if a dictionary doesn't have a valid key.
@@ -92,10 +84,10 @@ def index():
     # Set a flag for rotating backgroup colours
     color_flag = False
     # Define some time related variables
-    now, ago, ahead = timevars()
+    now = utcnow()
     # Make a dictionary of how many chain from's for each remailer
-    chfr_dict = chain_from_count2(ago, ahead)
-    chto_dict = chain_to_count2(ago, ahead)
+    chfr_dict = chain_from_count2()
+    chto_dict = chain_to_count2()
     for name, addy in distinct_rem_names():
         # We should have a key for every remailer, this is just a safeguard
         fr_count = keycheck(chfr_dict, name)
@@ -118,7 +110,7 @@ def index():
         index.write('<td align="center">')
         index.write('<a href="chto.%s" title="Broken Chains to %s">' % (url, addy))
         index.write('%s</a></td>\n' % (to_count,))
-        uptimes = remailer_index_pings(name, addy, ago, ahead)
+        uptimes = remailer_index_pings(name, addy)
         # Now we need a loop to parse each pinger column within the remailer
         # row
         for pinger in active_pingers:
@@ -129,7 +121,7 @@ def index():
                 index.write('%3.1f</td>\n' % (uptimes[ping_name],))
             else:
                 index.write('</td>\n')
-        avg,stddev,count = remailer_index_stats(name, addy, ago, ahead)
+        avg,stddev,count = remailer_index_stats(name, addy)
         # Average and StdDev can return 'None' if remailers have no current
         # data.  We have to catch this in order to present floats to the string
         # formatting line.
@@ -142,7 +134,7 @@ def index():
     # Add a row to the bottom of the table showing the count of remailer known
     # to each pinger.  We have to write a few empty cells to make things line
     # up because of the chain counts and totals columns.
-    pinger_totals = remailer_index_count(ago, ahead)
+    pinger_totals = remailer_index_count()
     index.write('<tr bgcolor="#F08080"><th class="tableleft">Count</th><td></td><td></td>\n')
     for pinger in active_pingers:
         ping_name = pinger[0]
@@ -152,7 +144,7 @@ def index():
             index.write('<td title="%s">0</td>\n' % (ping_name,))
     index.write('<td></td><td></td><td></td></tr>\n</table>\n')
 
-    index.write('<br>Last update: %s (UTC)<br>\n' % timefunc.utcnow())
+    index.write('<br>Last update: %s (UTC)<br>\n' % utcnow())
     index.write('<br><a href="%s">Remailer Genealogy</a>' % config.gene_report_name)
     index.write('<br><a href="%s">Failing Remailers</a>' % config.failed_report_name)
     index.write('<br><a href="%s">Uptime Averages</a>' % config.uptime_report_name)

@@ -90,7 +90,7 @@ def write_remailer_stats(filename, name, addy):
     stat.write('<th>Valid</th><th>Expire</th></tr>\n''')
     colorflag = False
     for ping_name, key, version, valid, expire in \
-        remailer_keys(name, addy, ago, ahead):
+        remailer_keys(name, addy):
 
         if colorflag: bgcolor = "#ADD8E6"
         else: bgcolor = "#E0FFFF"
@@ -129,12 +129,12 @@ not exceptional.  Any more then 2 is plain wrong and demands investigation.</p>
 <tr bgcolor="#F08080"><th>Remailer</th><th>Address</th><th>Pingers Reporting</th>
 <th>Pingers with Keys</th><th>Unique Keys</th></tr>\n''')
     colorflag = False
-    for rem_name, rem_addy, count in count_active_keys(ago, ahead):
+    for rem_name, rem_addy, count in count_active_keys():
         url, filename = filenames(rem_name, rem_addy)
         # We need the Try/Except here as a return of None cannot be unpacked.
         # None occurs when no pingers have a valid return.  Eg. Dead remailer.
         try:
-            count_keys,distinct_keys = count_unique_keys(rem_name, rem_addy, ago, ahead)
+            count_keys,distinct_keys = count_unique_keys(rem_name, rem_addy)
         except TypeError:
             count_keys = 0
             distinct_keys = 0

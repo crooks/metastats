@@ -18,6 +18,7 @@
 
 import config
 import psycopg2
+import timefunc
 
 DSN = 'dbname=%s user=%s' % (config.dbname, config.dbuser)
 try:
@@ -141,7 +142,7 @@ def remailer_stats(conf):
                     lat_time < 5999""", conf)
     return curs.fetchone()
 
-def remailer_index_pings(name, addy, ago, ahead):
+def remailer_index_pings(name, addy):
     curs.execute("""SELECT ping_name,up_time/10.0 FROM mlist2
                     WHERE rem_name = %s AND
                     rem_addy = %s AND
@@ -149,14 +150,14 @@ def remailer_index_pings(name, addy, ago, ahead):
                     timestamp <= cast(%s AS timestamp)""", (name, addy, ago, ahead))
     return dict(curs.fetchall())
 
-def remailer_index_count(ago, ahead):
+def remailer_index_count():
     curs.execute("""SELECT ping_name,count(rem_name) FROM mlist2 WHERE
                     timestamp >= cast(%s AS timestamp) AND
                     timestamp <= cast(%s AS timestamp)
                     GROUP BY ping_name""", (ago, ahead))
     return dict(curs.fetchall())
 
-def remailer_index_stats(name, addy, ago, ahead):
+def remailer_index_stats(name, addy):
     curs.execute("""SELECT avg(up_time)/10.0, stddev(up_time)/10.0, count(up_time)
                     FROM mlist2 WHERE rem_name = %s AND
                     rem_addy = %s AND
@@ -321,7 +322,7 @@ def chain_from_count(conf):
                     last_seen <= cast(%(max_future)s AS timestamp)""", conf)
     return curs.fetchone()[0]
 
-def chain_from_count2(ago, ahead):
+def chain_from_count2():
     curs.execute("""SELECT chain_from,count(chain_from) FROM chainstat2 WHERE
                     last_seen >= cast(%s AS timestamp) AND
                     last_seen <= cast(%s AS timestamp) GROUP BY
@@ -336,7 +337,7 @@ def chain_to_count(conf):
                     last_seen <= cast(%(max_future)s AS timestamp)""", conf)
     return curs.fetchone()[0]
 
-def chain_to_count2(ago, ahead):
+def chain_to_count2():
     curs.execute("""SELECT chain_to,count(chain_to) FROM chainstat2 WHERE
                     last_seen >= cast(%s AS timestamp) AND
                     last_seen <= cast(%s AS timestamp) GROUP BY
@@ -363,7 +364,7 @@ def chain_to(name, ago, ahead):
                     ORDER BY chain_from, ping_name""", (name, ago, ahead))
     return curs.fetchall()
 
-def avg_uptime(ago, ahead):
+def avg_uptime():
     curs.execute("""SELECT rem_name,avg(up_time)/10,avg(lat_time),
                     count(ping_name) FROM mlist2 WHERE
                     timestamp >= cast(%s AS timestamp) AND
@@ -396,7 +397,7 @@ def insert_key(ping_name, rem_name, rem_addy, rem_key, rem_version,
                     ping_name = %(ping_name)s""", conf)
     conn.commit()
 
-def count_active_keys(ago, ahead):
+def count_active_keys():
     """Count how many times each remailer name occurs in mlist2.
     This gives us a count of how many pingers return a result for
     each remailer.  We use this routine to check keys, so we're
@@ -410,7 +411,7 @@ def count_active_keys(ago, ahead):
     return curs.fetchall()
    
 
-def count_unique_keys(name, addy, ago, ahead):
+def count_unique_keys(name, addy):
     """Like count_active_keys, except this routine counts how many unique
     keys there are for each remailer name.  In a perfect would, this routine
     would return 1 for each remailer.  This would indicate that all pingers
@@ -425,7 +426,7 @@ def count_unique_keys(name, addy, ago, ahead):
                     GROUP BY rem_name,rem_addy""", (name, addy, ago, ahead))
     return curs.fetchone()
 
-def remailer_keys(name, addy, ago, ahead):
+def remailer_keys(name, addy):
     """Return all the ping_names and keys reported for a single remailer."""
     curs.execute("""SELECT ping_name,key,version,valid,expire FROM mlist2 WHERE
                     rem_name=%s AND
@@ -434,3 +435,9 @@ def remailer_keys(name, addy, ago, ahead):
                     timestamp < cast(%s AS timestamp)
                     ORDER BY ping_name""", (name, addy, ago, ahead))
     return curs.fetchall()
+
+global now, ago, ahead
+now = timefunc.utcnow()
+ago = timefunc.hours_ago(config.active_age)
+ahead = timefunc.hours_ahead(config.active_future)
+
