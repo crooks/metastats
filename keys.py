@@ -48,13 +48,21 @@ def url_fetch(url):
 
 def pubring_process(ping_name, content):
     for line in content:
+        is_dated = two_dates_re.match(line)
         is_pubring = pubring_re.match(line)
         if is_pubring:
             rem_name = is_pubring.group(1)
             rem_addy = is_pubring.group(2)
             rem_key = is_pubring.group(3)
             rem_version = is_pubring.group(4)
-            insert_key(ping_name, rem_name, rem_addy, rem_key, rem_version)
+        if is_pubring and not is_dated:
+            insert_key(ping_name, rem_name, rem_addy, rem_key, rem_version,
+                       None, None)
+        if is_pubring and is_dated:
+            valid_date = is_dated.group(1)
+            expire_date = is_dated.group(2)
+            insert_key(ping_name, rem_name, rem_addy, rem_key, rem_version,
+                       valid_date, expire_date)
 
 def filenames(name, addy):
     noat = addy.replace('@',".")
@@ -67,13 +75,19 @@ def write_remailer_stats(filename, name, addy):
     stats.write('Keystats for the %s remailer (%s).\n\n' % (name, addy))
     stats.write('Pinger'.ljust(12))
     stats.write('Remailer Key'.ljust(35))
-    stats.write('Version'.ljust(20) + '\n')
+    stats.write('Version'.ljust(20))
+    stats.write('Valid'.ljust(12))
+    stats.write('Expire\n')
     stats.write('------'.ljust(12))
     stats.write('------------'.ljust(35))
-    stats.write('-------'.ljust(20) + '\n')
+    stats.write('-------'.ljust(20))
+    stats.write('-----'.ljust(12))
+    stats.write('------\n')
 
-    for ping_name, key, version in remailer_keys(name, addy, ago, ahead):
-        stats.write('%-12s%-35s%-20s\n' % (ping_name, key, version))
+    for ping_name, key, version, valid, expire in \
+        remailer_keys(name, addy, ago, ahead):
+        stats.write('%-12s%-35s%-20s' % (ping_name, key, version))
+        stats.write('%-12s%-12s\n' % (valid, expire))
     stats.write('\nLast Updated: %s (UTC)' % now)
     stats.close()
 
@@ -139,8 +153,12 @@ not exceptional.  Any more then 2 is plain wrong and demands investigation.</p>
     index.close()
 
 def getkeystats():
-    global pubring_re
-    pubring_re = re.compile('([0-9a-z]{1,8})\s+(\S+@\S+)\s+([0-9a-z]+)\s+(\S+)\s+')
+    global pubring_re, two_dates_re
+    pubring_re = re.compile(
+        '([0-9a-z]{1,8})\s+(\S+@\S+)\s+([0-9a-z]+)\s+(\S+)\s+\S+\s+(.*)')
+    two_dates_re = re.compile(
+        '.*([0-9]{4}\-[0-9]{2}\-[0-9]{2})\s+([0-9]{4}\-[0-9]{2}\-[0-9]{2})')
+
     socket.setdefaulttimeout(config.timeout)
     for url in keyrings():
         ping_name = url[0]

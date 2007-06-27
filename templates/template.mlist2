@@ -10,4 +10,6 @@ options char(15),
 timestamp timestamp,
 key char(32)
 version varchar(20)
+valid date
+expire date
 );
