@@ -366,10 +366,6 @@ def main():
     stat_re = re.compile('([0-9a-z]{1,8})\s+([0-9A-H?]{12}\s.*)')
     addy_re = re.compile('\$remailer\{\"([0-9a-z]{1,8})\"\}\s\=\s\"\<(.*)\>\s')
     chain_re = re.compile('\((\w{1,12})\s(\w{1,12})\)')
-    global now, ago, ahead
-    now = timefunc.utcnow()
-    ago = timefunc.hours_ago(config.active_age)
-    ahead = timefunc.hours_ahead(config.active_future)
 
     # Are we running in testmode?  Testmode implies the script was executed
     # without a --live argument.
@@ -433,5 +429,8 @@ def main():
     logger.info("Processing cycle completed at %s (UTC)", timefunc.utcnow())
 
 # Call main function.
+now = timefunc.utcnow()
+ago = timefunc.hours_ago(config.active_age)
+ahead = timefunc.hours_ahead(config.active_future)
 if (__name__ == "__main__"):
     main()
