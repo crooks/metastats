@@ -48,21 +48,73 @@ def url_fetch(url):
 
 def pubring_process(ping_name, content):
     for line in content:
-        is_dated = two_dates_re.match(line)
-        is_pubring = pubring_re.match(line)
-        if is_pubring:
-            rem_name = is_pubring.group(1)
-            rem_addy = is_pubring.group(2)
-            rem_key = is_pubring.group(3)
-            rem_version = is_pubring.group(4)
-        if is_pubring and not is_dated:
-            insert_key(ping_name, rem_name, rem_addy, rem_key, rem_version,
-                       None, None)
-        if is_pubring and is_dated:
-            valid_date = is_dated.group(1)
-            expire_date = is_dated.group(2)
-            insert_key(ping_name, rem_name, rem_addy, rem_key, rem_version,
-                       valid_date, expire_date)
+
+        # Elements is a list of the elements in the content we're reading
+        # seperated by spaces.  Note, this is every line in a pubring.mix,
+        # not just the headers!
+        elements = line.split(' ')
+        num_elements = len(elements)
+
+        if num_elements < 2:
+            continue
+
+        name = None
+        addy = None
+        key = None
+        ver = None
+        valid = None
+        expire = None
+
+        # First element is the remailer name
+        name_element = elements[0]
+        is_name = name_re.match(name_element)
+        if is_name: name = name_element
+
+        # Second element is the remailer address
+        addy_element = elements[1]
+        is_addy = addy_re.match(addy_element)
+        if is_addy: addy = addy_element
+
+        # If we don't have a name and an address there's no point in
+        # trying to process the line.
+        if not name or not addy:
+            continue
+
+        if num_elements >= 3:
+            # Third element is the remailer key
+            key_element = elements[2]
+            is_key = key_re.match(key_element)
+            if is_key: key = key_element
+            else: key = None
+
+        if num_elements >= 4:
+            # Forth element is the mixmaster version
+            ver_element = elements[3]
+            is_ver = ver_re.match(ver_element)
+            if is_ver: ver = ver_element
+            else: ver = None
+
+        # Fifth element is the remailer capstring.  At the moment we
+        # don't use this during key checking.  Perhaps one day.
+
+        if num_elements >= 6:
+            # Sixth element is the key's valid-from date
+            valid_element = elements[5]
+            is_valid = date_re.match(valid_element)
+            if is_valid: valid = valid_element
+            else: valid = None
+
+        if num_elements >= 7:
+            # Seventh element is the key's expiry date
+            expire_element = elements[6]
+            is_expire = date_re.match(expire_element)
+            if is_expire: expire = expire_element
+            else: expire = None
+        # With the key header fully analysed, we now insert it into
+        # the keys database.
+        print line
+        print name, key, ver, valid, expire
+        insert_key(ping_name, name, addy, key, ver, valid, expire)
 
 def filenames(name, addy):
     noat = addy.replace('@',".")
@@ -167,11 +219,12 @@ not exceptional.  Any more then 2 is plain wrong and demands investigation.</p>
     index.close()
 
 def getkeystats():
-    global pubring_re, two_dates_re
-    pubring_re = re.compile(
-        '([0-9a-z]{1,8})\s+(\S+@\S+)\s+([0-9a-z]+)\s+(\S+)\s+\S+\s+(.*)')
-    two_dates_re = re.compile(
-        '.*([0-9]{4}\-[0-9]{2}\-[0-9]{2})\s+([0-9]{4}\-[0-9]{2}\-[0-9]{2})')
+    global name_re, addy_re, key_re, ver_re, date_re
+    name_re = re.compile('[0-9a-z]{1,8}')
+    addy_re = re.compile('\S+@\S+')
+    key_re = re.compile('[0-9a-z]{32}')
+    ver_re = re.compile('[0-9]\S+')
+    date_re = re.compile('[0-9]{4}\-[0-9]{2}\-[0-9]{2}')
 
     socket.setdefaulttimeout(config.timeout)
     for url in keyrings():
@@ -191,5 +244,5 @@ def writekeystats():
 
 # Call main function.
 if (__name__ == "__main__"):
-    #getkeystats()
+    getkeystats()
     writekeystats()
