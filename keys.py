@@ -112,8 +112,6 @@ def pubring_process(ping_name, content):
             else: expire = None
         # With the key header fully analysed, we now insert it into
         # the keys database.
-        print line
-        print name, key, ver, valid, expire
         insert_key(ping_name, name, addy, key, ver, valid, expire)
 
 def filenames(name, addy):
