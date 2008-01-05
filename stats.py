@@ -342,19 +342,19 @@ def write_remailer_stats(name, addy, vitals):
     statfile.write(" Highest:\t%d:%02d\t\t" % timefunc.hours_mins(vitals["rem_latency_max"]))
     statfile.write("StdDev:\t%d:%02d\n" % timefunc.hours_mins(vitals["rem_latency_stddev"]))
 
-    line = "\nActive Pings\n"
+    line = "\nIn-scope pings\n"
     statfile.write(line)
     for row in db.remailer_active_pings(vitals):
         entry = db_process(row)
         statfile.write(entry)
 
-    line = "\n\nIgnored Pings\n"
+    line = "\n\nOut of scope pings\n"
     statfile.write(line)
     for row in db.remailer_ignored_pings(vitals):
         entry = db_process(row)
         statfile.write(entry)
  
-    line = "\n\nDead Pings\n"
+    line = "\n\nDead pings\n"
     statfile.write(line)
     for row in db.remailer_inactive_pings(vitals):
         entry = db_process(row)
