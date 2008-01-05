@@ -285,6 +285,11 @@ def gen_remailer_vitals(name, addy):
         vitals["rem_latency_stddev_all"] = 0
     if not vitals["rem_uptime_stddev_all"]:
         vitals["rem_uptime_stddev_all"] = 0
+    # Use a configured multiplier to broaden/narrow out accepted ranges
+    vitals["rem_latency_stddev_range"] = \
+     float(vitals["rem_latency_stddev_all"]) * config.latency_stddev_multiplier
+    vitals["rem_uptime_stddev_range"] = \
+     float(vitals["rem_uptime_stddev_all"]) * config.uptime_stddev_multiplier
     # Now we get some stats for active pings using the criteria defined above.
     vitals["rem_latency_min"], \
     vitals["rem_latency_avg"], \

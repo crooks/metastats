@@ -58,6 +58,11 @@ livepoint = 5
 # remailer is considered failing.  Not dead, just failing.
 failpoint = 6
 
+# These multipliers allow us to weight the Standard Deviation values used to
+# consider a ping result in or out of scope.
+latency_stddev_multiplier = 1.0
+uptime_stddev_multiplier = 1.0
+
 # This is the filename used to create a .txt and .html report file
 # for the remailer genealogy section.
 gene_report_name = "genealogy.html"

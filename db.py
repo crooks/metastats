@@ -176,10 +176,10 @@ def remailer_active_pings(conf):
                     rem_addy = %(rem_addy)s AND
                     timestamp >= cast(%(max_age)s AS timestamp) AND
                     timestamp <= cast(%(max_future)s AS timestamp) AND
-                    up_time >= cast(%(rem_uptime_avg_all)s - %(rem_uptime_stddev_all)s AS int) AND
-                    up_time <= cast(%(rem_uptime_avg_all)s + %(rem_uptime_stddev_all)s AS int) AND
-                    lat_time >= cast(%(rem_latency_avg_all)s - %(rem_latency_stddev_all)s AS int) AND
-                    lat_time <= cast(%(rem_latency_avg_all)s + %(rem_latency_stddev_all)s AS int) AND
+                    up_time >= cast(%(rem_uptime_avg_all)s - %(rem_uptime_stddev_range)s AS int) AND
+                    up_time <= cast(%(rem_uptime_avg_all)s + %(rem_uptime_stddev_range)s AS int) AND
+                    lat_time >= cast(%(rem_latency_avg_all)s - %(rem_latency_stddev_range)s AS int) AND
+                    lat_time <= cast(%(rem_latency_avg_all)s + %(rem_latency_stddev_range)s AS int) AND
                     up_hist !~ '^[0?]{12}$' and
                     lat_time < 5999
                     ORDER BY up_time DESC, ping_name ASC""", conf)
@@ -206,10 +206,10 @@ def remailer_ignored_pings(conf):
                     rem_addy = %(rem_addy)s AND
                     timestamp >= cast(%(max_age)s AS timestamp) AND
                     timestamp <= cast(%(max_future)s AS timestamp) AND
-                    (up_time < cast(%(rem_uptime_avg_all)s - %(rem_uptime_stddev_all)s AS int) OR
-                    up_time > cast(%(rem_uptime_avg_all)s + %(rem_uptime_stddev_all)s AS int) OR
-                    lat_time < cast(%(rem_latency_avg_all)s - %(rem_latency_stddev_all)s AS int) OR
-                    lat_time > cast(%(rem_latency_avg_all)s + %(rem_latency_stddev_all)s AS int) OR
+                    (up_time < cast(%(rem_uptime_avg_all)s - %(rem_uptime_stddev_range)s AS int) OR
+                    up_time > cast(%(rem_uptime_avg_all)s + %(rem_uptime_stddev_range)s AS int) OR
+                    lat_time < cast(%(rem_latency_avg_all)s - %(rem_latency_stddev_range)s AS int) OR
+                    lat_time > cast(%(rem_latency_avg_all)s + %(rem_latency_stddev_range)s AS int) OR
                     up_hist ~ '^[0?]{12}$' OR
                     lat_time = 5999)
                     ORDER BY up_time DESC, ping_name ASC""", conf)
