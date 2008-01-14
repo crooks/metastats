@@ -135,6 +135,8 @@ def url_process(pinger_name,pinger):
         is_stat = stat_re.match(row)
         if is_stat:
             rem_name = is_stat.group(1)
+            if len(rem_name) > 8:
+                logger.warn("%s reports long remailer name %s", pinger_name, rem_name)
             if stats_hash.has_key(rem_name):
                 logger.warn("Pinger %s reports multiple entries for %s", pinger_name, rem_name)
             else:
@@ -368,8 +370,8 @@ def main():
     logger.info("Beginning process cycle at %s (UTC)", timefunc.utcnow())
     socket.setdefaulttimeout(config.timeout)
     global stat_re, addy_re, chain_re
-    stat_re = re.compile('([0-9a-z]{1,8})\s+([0-9A-H?]{12}\s.*)')
-    addy_re = re.compile('\$remailer\{\"([0-9a-z]{1,8})\"\}\s\=\s\"\<(.*)\>\s')
+    stat_re = re.compile('([0-9a-z]{1,12})\s+([0-9A-H?]{12}\s.*)')
+    addy_re = re.compile('\$remailer\{\"([0-9a-z]{1,12})\"\}\s\=\s\"\<(.*)\>\s')
     chain_re = re.compile('\((\w{1,12})\s(\w{1,12})\)')
 
     # Are we running in testmode?  Testmode implies the script was executed
