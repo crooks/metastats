@@ -35,6 +35,13 @@ def genealogy():
     genefile.write('<link rel="StyleSheet" href="stats.css" type="text/css">\n')
     genefile.write('</head>\n\n<body>\n')
     genefile.write('<h1>Remailer Genealogy</h1>\n')
+    genefile.write('When pingers report a remailer as below %s0%%, ' % config.deadpoint)
+    genefile.write('it is timestamped as Last Seen.  If it recovers to above ')
+    genefile.write('%s0%%, the timestamp is removed. ' % config.livepoint)
+    down_days = config.dead_after_hours / 24
+    genefile.write('If the remailer fails to recover after %s days, ' % down_days)
+    genefile.write('it is considered dead.  If it returns after this, ')
+    genefile.write('it will be considered a new remailer.<br><br>\n')
     genefile.write('<table border="0" bgcolor="#000000">\n')
     genefile.write('<tr bgcolor="#F08080">\n')
     genefile.write('<th>Remailer Name</th><th>Remailer Address</th>')

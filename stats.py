@@ -332,7 +332,10 @@ def write_remailer_stats(name, addy, vitals):
     statfile.write("\nPingers\n")
     statfile.write(" Known:\t%d\t" % db.count_total_pingers())
     statfile.write("Alive:\t%d\t" % vitals["rem_count_all"])
-    statfile.write("Active:\t%d\n" % vitals["rem_active_count"])
+    statfile.write("In-Scope:\t%d\t" % vitals["rem_active_count"])
+    # Out of scope pings are total Alive pings minus In-Scope Pings
+    oos = vitals["rem_count_all"] - vitals["rem_active_count"]
+    statfile.write("Out-of-Scope:\t%d\n" % oos)
     statfile.write("\nUptime\n")
     statfile.write(" Lowest:\t%3.2f%%\t\t" % (vitals["rem_uptime_min"]/10.00))
     statfile.write("Average:\t%3.2f%%\n" % (float(vitals["rem_uptime_avg"])/10.00))
