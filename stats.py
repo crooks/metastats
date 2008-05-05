@@ -337,30 +337,27 @@ def write_remailer_stats(name, addy, vitals):
     oos = vitals["rem_count_all"] - vitals["rem_active_count"]
     statfile.write("Out-of-Scope: %d\n" % oos)
     statfile.write("\nUptime\n")
-    statfile.write(" Lowest:\t%3.2f%%\t\t" % (vitals["rem_uptime_min"]/10.00))
-    statfile.write("Average:\t%3.2f%%\n" % (float(vitals["rem_uptime_avg"])/10.00))
-    statfile.write(" Highest:\t%3.2f%%\t\t" % (vitals["rem_uptime_max"]/10.00))
-    statfile.write("StdDev:\t%3.2f%%\n" % (float(vitals["rem_uptime_stddev"])/10.00))
+    statfile.write(" Lowest: %3.2f%%\t\t" % (vitals["rem_uptime_min"]/10.00))
+    statfile.write("Average: %3.2f%%\n" % (float(vitals["rem_uptime_avg"])/10.00))
+    statfile.write(" Highest: %3.2f%%\t" % (vitals["rem_uptime_max"]/10.00))
+    statfile.write("StdDev: %3.2f%%\n" % (float(vitals["rem_uptime_stddev"])/10.00))
     statfile.write("\nLatency\n")
-    statfile.write(" Lowest:\t%d:%02d\t\t" % timefunc.hours_mins(vitals["rem_latency_min"]))
-    statfile.write("Average:\t%d:%02d\n" % timefunc.hours_mins(vitals["rem_latency_avg"]))
-    statfile.write(" Highest:\t%d:%02d\t\t" % timefunc.hours_mins(vitals["rem_latency_max"]))
-    statfile.write("StdDev:\t%d:%02d\n" % timefunc.hours_mins(vitals["rem_latency_stddev"]))
+    statfile.write(" Lowest: %d:%02d\t\t" % timefunc.hours_mins(vitals["rem_latency_min"]))
+    statfile.write("Average: %d:%02d\n" % timefunc.hours_mins(vitals["rem_latency_avg"]))
+    statfile.write(" Highest: %d:%02d\t\t" % timefunc.hours_mins(vitals["rem_latency_max"]))
+    statfile.write("StdDev: %d:%02d\n" % timefunc.hours_mins(vitals["rem_latency_stddev"]))
 
-    line = "\nIn-scope pings\n"
-    statfile.write(line)
+    statfile.write("\nIn-scope pings\n")
     for row in db.remailer_active_pings(vitals):
         entry = db_process(row)
         statfile.write(entry)
 
-    line = "\n\nOut of scope pings\n"
-    statfile.write(line)
+    statfile.write("\n\nOut of scope pings\n")
     for row in db.remailer_ignored_pings(vitals):
         entry = db_process(row)
         statfile.write(entry)
  
-    line = "\n\nDead pings\n"
-    statfile.write(line)
+    statfile.write("\n\nDead pings\n")
     for row in db.remailer_inactive_pings(vitals):
         entry = db_process(row)
         statfile.write(entry)
