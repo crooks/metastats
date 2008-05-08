@@ -173,8 +173,9 @@ def write_stats():
 In normal circumstances every pinger should provide a key, but exceptions
 may occur if a pinger doesn't return a pubring.mix, or we haven't defined
 what the url for the file is on a given pinger.  Unique Keys should be 1,
-but during key expiration, some pingers will update before others, so 2 is
-not exceptional.  Any more then 2 is plain wrong and demands investigation.</p>
+but during key expiration, some pingers will update before others, so 2 can
+occur.  During these transitional periods, both keys should be valid. More
+than two keys being reported for a single remailer is very bad.</p>
 <table border="0" bgcolor="#000000">
 <tr bgcolor="#F08080"><th>Remailer</th><th>Address</th><th>Pingers Reporting</th>
 <th>Pingers with Keys</th><th>Unique Keys</th></tr>\n''')
