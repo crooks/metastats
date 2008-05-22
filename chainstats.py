@@ -75,8 +75,8 @@ def chainstat_row_process(entry):
 
 # ----- Start of main routine -----
 def chainstats():
-    global chain_re
-    chain_re = re.compile('\((\w{1,12})\s(\w{1,12})\)')
+    #global chain_re
+    #chain_re = re.compile('\((\w{1,12})\s(\w{1,12})\)')
 
     ago = timefunc.hours_ago(config.active_age)
     ahead = timefunc.hours_ahead(config.active_future)

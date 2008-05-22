@@ -121,6 +121,12 @@ def url_process(pinger_name,pinger):
                           'to': is_chain.group(2),
                           'stamp': genstamp,
                           'pinger': pinger_name }
+                if chain['from'] == '*' and chain['to'] == '*':
+		    logger.warn("Pinger %s reports global broken chains (* *)", pinger_name)
+                elif chain['from'] == '*':
+		    logger.info("Pinger %s reports wildcard broken chains to %s", pinger_name, chain['to'])
+                elif chain['to'] == '*':
+		    logger.info("Pinger %s reports wildcard broken chains from %s", pinger_name, chain['from'])
                 db.chainstat_update(chain)
                 logger.debug("Processing broken chain from %(from)s to %(to)s", chain)
             else:
@@ -372,7 +378,7 @@ def main():
     global stat_re, addy_re, chain_re
     stat_re = re.compile('([0-9a-z]{1,12})\s+([0-9A-H?]{12}\s.*)')
     addy_re = re.compile('\$remailer\{\"([0-9a-z]{1,12})\"\}\s\=\s\"\<(.*)\>\s')
-    chain_re = re.compile('\((\w{1,12})\s(\w{1,12})\)')
+    chain_re = re.compile('\((\S{1,12})\s(\S{1,12})\)')
 
     # Are we running in testmode?  Testmode implies the script was executed
     # without a --live argument.
