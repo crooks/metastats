@@ -3,6 +3,7 @@
 # vim: tabstop=4 expandtab shiftwidth=4 autoindent
 #
 # stats.py -- Harvest and analyse remailer statistics files
+# $Id$
 #
 # Copyright (C) 2005 Steve Crook <steve@mixmin.org>
 #
