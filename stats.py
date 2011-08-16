@@ -21,19 +21,22 @@ from mx import DateTime
 from pysqlite2 import dbapi2 as sqlite
 import time
 import re
+import logging
 import os.path
 import sys
 from calendar import timegm
 
+LOGLEVEL = 'debug'
 HOMEDIR = os.path.expanduser('~')
 BASEDIR = os.path.join(HOMEDIR, 'metanew')
+LOGDIR = os.path.join(BASEDIR, 'log')
 
 class Database():
     def __init__(self):
         dbdir = os.path.join(BASEDIR, 'db')
         if not os.path.isdir(dbdir):
-            print "%s: Directory does not exist. Aborting." % dbdir
-            sys.exit(1)
+            mkdir(dbdir)
+            logging.info("Created database directory: %s" % dbdir)
         dbfile = os.path.join(dbdir, "metastats.db")
         con = sqlite.connect(dbfile)
         self.con = con
@@ -114,7 +117,18 @@ class Database():
              )""" % mlist2)
         self.con.commit()
 
-    def mlist2_by_remailer(self, rem_name):
+    def mlist2_remailers(self):
+        """Return a list of all known remailers."""
+        self.cursor.execute("""SELECT DISTINCT rem_name, rem_addy FROM mlist2""")
+        return self.cursor.fetchall()
+
+    def count_pingers_for_remailer(self, rem_name):
+        self.cursor.execute("""SELECT DISTINCT COUNT(rem_name) FROM mlist2
+                               WHERE rem_name='%s'""" % rem_name)
+        return self.cursor.fetchone()
+
+    def mlist2_for_remailer(self, rem_name):
+        """Return a list of stats relating to a specific Remailer."""
         self.cursor.execute("""SELECT ping_name, lat_hist, lat_time, up_hist,
                                       up_time, options, generated
                                FROM mlist2
@@ -164,6 +178,8 @@ class Pingers():
             ping_name = pinger[0]
             mlist2 = pinger[1]
             rc, content, type = self.geturl(mlist2)
+            if rc >= 100:
+                continue
             lines = content.split("\n")
             # At this point, the assumption is that a URL has been retreived
             # for a pinger. We can therfore delete old entries relating to
@@ -208,7 +224,37 @@ class Pingers():
                         }
                         db.insert_mlist2(mlist2)
 
+class Output():
+    def __init__(self):
+        outdir = os.path.join(BASEDIR, "results")
+        if not os.path.isdir(outdir):
+            mkdir(outdir)
+            logging.info("Created results directory: %s" % outdir)
+        self.outdir = outdir
 
+    def remailer_text_report(self):
+        remailers = db.mlist2_remailers()
+        for rem_name, rem_addy in remailers:
+            filename = os.path.join(self.outdir, "%s.txt" % rem_name)
+            #f = open(filename, 'w')
+            sys.stdout.write("Pinger statistics for the %s " % rem_name)
+            sys.stdout.write("remailer (%s)\n\n" % rem_addy)
+            cnt = db.count_pingers_for_remailer(rem_name)
+            sys.stdout.write("Pingers Reporting: %s\n\n" % cnt)
+            result = db.mlist2_for_remailer(rem_name)
+            for line in result:
+                uptime = float(line[4] / 10.0)
+                outline = "%-15s" % line[0]             # ping_name
+                outline += "%s" % line[1]               # lat_hist
+                outline += "%6s" % int2time(line[2])    # lat_time
+                outline += "%14s" % line[3]             # up_hist
+                outline += "%6s%%" % uptime             # up_time
+                outline += "%17s" % line[5]             # options
+                outline += "%18s" % epoch2utc(line[6])  # generated
+                sys.stdout.write("%s\n" % outline)
+            sys.stdout.write("Generated: %s\n" % utcnow())
+                #f.write(line)
+            #f.close()
 
 def arpa2utc(datestr):
     """Convert an ARPA formatted Date string to a standard UTC struct_time."""
@@ -223,10 +269,15 @@ def utc2epoch(datestr):
     # Return the epoch of tstup (in UTC)
     return int(timegm(tstup))
 
+def utcnow():
+    """Return the current UTC time."""
+    now = time.gmtime()
+    return time.strftime("%Y-%m-%d %H:%M", now)
+
 def epoch2utc(epoch):
     """Convert an Epoch to a UTC struct_time."""
     tstup = time.gmtime(epoch)
-    return time.strftime("%Y-%m-%d %H:%M:%S", tstup)
+    return time.strftime("%Y-%m-%d %H:%M", tstup)
 
 def time2int(timestr):
     """Convert a timestamp of 01:11 to 71 and return an integer."""
@@ -238,10 +289,35 @@ def time2int(timestr):
     m = int(elements[1])
     return h * 60 + m
 
+def int2time(inttime):
+    h = int(inttime / 60)
+    m = inttime % 60
+    return "%s:%s" % (h,m)
+
+def mkdir(path):
+    from os import makedirs
+    makedirs(path)
+
+def init_logging():
+    loglevels = {'debug': logging.DEBUG, 'info': logging.INFO,
+                'warn': logging.WARN, 'error': logging.ERROR}
+    if not os.path.isdir(LOGDIR):
+        mkdir(LOGDIR)
+        # Can't simply log this creation because logging isn't
+        # initialized yet.
+    logfile = os.path.join(LOGDIR, 'log')
+    logging.basicConfig(
+        filename=logfile,
+        level = loglevels[LOGLEVEL],
+        format = '%(asctime)s %(levelname)s %(message)s',
+        datefmt = '%Y-%m-%d %H:%M:%S')
+
 def main():
+    init_logging()
     url = Pingers()
-    url.getpings()
-    print db.mlist2_by_remailer('banana')
+    op = Output()
+    #url.getpings()
+    op.remailer_text_report()
 
 # Call main function.
 if (__name__ == "__main__"):
