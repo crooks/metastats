@@ -376,7 +376,7 @@ def main():
     logger.info("Beginning process cycle at %s (UTC)", timefunc.utcnow())
     socket.setdefaulttimeout(config.timeout)
     global stat_re, addy_re, chain_re
-    stat_re = re.compile('([0-9a-z]{1,12})\s+([0-9A-H?]{12}\s.*)')
+    stat_re = re.compile('(\w{1,12})\s+([0-9A-H?]{12}\s.*)')
     addy_re = re.compile('\$remailer\{\"([0-9a-z]{1,12})\"\}\s\=\s\"\<(.*)\>\s')
     chain_re = re.compile('\((\S{1,12})\s(\S{1,12})\)')
 
