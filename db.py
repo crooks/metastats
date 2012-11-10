@@ -228,6 +228,7 @@ def mark_failed(name, addy, time):
                     last_seen IS NULL AND
                     last_fail IS NULL AND
                     rem_name = %(rem_name)s AND
+                    rem_name <> 'bunker' AND
                     rem_addy = %(rem_addy)s""", details)
     conn.commit()
 
