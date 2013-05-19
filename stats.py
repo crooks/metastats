@@ -142,7 +142,7 @@ def url_process(pinger_name,pinger):
         if is_stat:
             rem_name = is_stat.group(1)
             if len(rem_name) > 8:
-                logger.warn("%s reports long remailer name %s", pinger_name, rem_name)
+                logger.info("%s reports long remailer name %s", pinger_name, rem_name)
             if stats_hash.has_key(rem_name):
                 logger.warn("Pinger %s reports multiple entries for %s", pinger_name, rem_name)
             else:
