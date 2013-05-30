@@ -32,7 +32,10 @@ keyindex = "keystat.html"
 dbname = "metastats"
 
 # Name of the database user account
-dbuser = "crooks"
+dbuser = "metastats"
+
+# Password for the dbuser account
+#dbpassword = ""
 
 # Number of hours old a timestamp can be and a pinger
 # entry still considered active.

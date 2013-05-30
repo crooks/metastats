@@ -20,9 +20,16 @@ import config
 import psycopg2
 import timefunc
 
-DSN = 'dbname=%s user=%s' % (config.dbname, config.dbuser)
 try:
-    conn = psycopg2.connect(DSN)
+    if hasattr(config, 'dbpassword'):
+        conn = psycopg2.connect('dbname=%s user=%s password=%s'
+                                % config.dbname,
+                                  config.dbuser,
+                                  config.dbpassword)
+    else:
+        conn = psycopg2.connect('dbname=%s user=%s'
+                                % config.dbname,
+                                  config.dbuser)
 except:
     #TODO initialise logging so we don't have printed errors
     print "Failed to connect to database"
